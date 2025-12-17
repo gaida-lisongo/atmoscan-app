@@ -8,7 +8,7 @@ import { Container, Col, Row } from 'react-bootstrap';
 import { StatRightTopIcon } from "widgets";
 
 // import sub components
-import { EntrepriseManager, Teams, 
+import { EntrepriseManager, GazManager, 
     TasksPerformance 
 } from "sub-components";
 
@@ -57,7 +57,7 @@ const Home = () => {
                     <Col xl={8} lg={12} md={12} xs={12}>
 
                         {/* Teams  */}
-                        <Teams />
+                        <GazManager />
 
                     </Col>
                 </Row>

@@ -8,6 +8,7 @@ import EntrepriseManager from 'sub-components/dashboard/EntrepriseManager';
 import ActiveProjects from 'sub-components/dashboard/ActiveProjects';
 import TasksPerformance from 'sub-components/dashboard/TasksPerformance';
 import Teams from 'sub-components/dashboard/Teams';
+import GazManager from 'sub-components/dashboard/GazManager';
 
 // sub components for /pages/profile
 import AboutMe from 'sub-components/profile/AboutMe';
@@ -34,6 +35,7 @@ export {
    ActiveProjects,
    TasksPerformance,
    Teams,
+   GazManager,
    
    AboutMe,
    ActivityFeed,
