@@ -7,10 +7,7 @@ import dynamic from 'next/dynamic';
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 
-const Charts = ({
-    sources
-}) => {
-    console.log("Sources data : ", sources)
+const SourcesChart = () => {
     const perfomanceChartSeries = [100, 78, 89];
     const perfomanceChartOptions = {
         dataLabels: { enabled: !1 },
@@ -129,4 +126,4 @@ const Charts = ({
     )
 }
 
-export default Charts
+export default SourcesChart

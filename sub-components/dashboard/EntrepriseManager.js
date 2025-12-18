@@ -79,7 +79,7 @@ const EntrepriseManager = () => {
     );
 
     return (
-        <Row className="mt-6">
+        <Row>
             <Col md={12} xs={12}>
                 <Card>
                     <Card.Header className="bg-white py-4 d-flex align-items-center justify-content-between">

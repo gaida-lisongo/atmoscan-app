@@ -7,6 +7,8 @@
 import EntrepriseManager from 'sub-components/dashboard/EntrepriseManager';
 import ActiveProjects from 'sub-components/dashboard/ActiveProjects';
 import TasksPerformance from 'sub-components/dashboard/TasksPerformance';
+import SourceManager from 'sub-components/dashboard/SourceManager';
+import SourcesChart from 'sub-components/dashboard/SourcesChart';
 import GesChart from 'sub-components/dashboard/GesChart';
 import Teams from 'sub-components/dashboard/Teams';
 import GazManager from 'sub-components/dashboard/GazManager';
@@ -37,9 +39,11 @@ export {
    EntrepriseManager,
    ActiveProjects,
    TasksPerformance,
+   SourceManager,
    GesChart,
    Teams,
    GazManager,
+   SourcesChart,
    
    AboutMe,
    ActivityFeed,
