@@ -1,14 +1,14 @@
 'use client'
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, useMemo } from "react";
 import { Container, Col, Row, Spinner } from 'react-bootstrap';
 import { StatRightTopIcon } from "widgets";
-import { EntrepriseManager, GazManager, TasksPerformance, SourcesChart, SourceManager } from "sub-components";
-import ProjectsStatsData from "data/dashboard/ProjectsStatsData";
+import { Activity, Wind } from 'react-bootstrap-icons'; // Nouveaux icons
+import { EntrepriseManager, GazManager, SourcesChart, SourceManager } from "sub-components";
 
 export const CustomLoader = () => (
     <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: '100vh', backgroundColor: '#f5f7fb' }}>
         <Spinner animation="border" variant="primary" style={{ width: '4rem', height: '4rem' }} />
-        <h4 className="mt-3 text-primary fw-bold">Chargement du Dashboard...</h4>
+        <h4 className="mt-3 text-primary fw-bold italic">Analyse des données environnementales...</h4>
     </div>
 );
 
@@ -30,7 +30,39 @@ const Home = () => {
 
     useEffect(() => { refreshData(); }, []);
 
-    // --- Méthodes CRUD Sources ---
+    // --- Calcul dynamique des Metrics (useMemo pour la performance) ---
+    const metrics = useMemo(() => {
+        const stats = {
+            DDD: { sources: 0, gaz: 0 },
+            DEHPE: { sources: 0, gaz: 0 }
+        };
+
+        sources.forEach(s => {
+            if (stats[s.categorie]) {
+                stats[s.categorie].sources += 1;
+                stats[s.categorie].gaz += s.gaz?.length || 0;
+            }
+        });
+
+        return [
+            {
+                id: 1,
+                title: "Direction Développement Durable (DDD)",
+                value: stats.DDD.sources,
+                icon: <Activity size={18} className="text-info" />,
+                statInfo: `<span className="text-info me-2 fw-bold">${stats.DDD.gaz}</span> Gaz sous surveillance`
+            },
+            {
+                id: 2,
+                title: "Protection Environnement (DEHPE)",
+                value: stats.DEHPE.sources,
+                icon: <Wind size={18} className="text-success" />,
+                statInfo: `<span className="text-success me-2 fw-bold">${stats.DEHPE.gaz}</span> Gaz sous surveillance`
+            }
+        ];
+    }, [sources]);
+
+    // --- Méthodes CRUD ---
     const handleAddSource = async (data) => {
         const res = await fetch('/api/sources', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -47,7 +79,7 @@ const Home = () => {
         if (res.ok) {
             const json = await res.json();
             refreshData();
-            return json.data; // Retourne la source mise à jour pour la modale
+            return json.data;
         }
     };
 
@@ -62,23 +94,26 @@ const Home = () => {
 
     return (
         <Fragment>
-            <div className="bg-primary pt-10 pb-21"></div>
+            {/* Animation de dégradé en arrière-plan */}
+            <div className="bg-primary pt-10 pb-21" style={{ transition: 'all 0.5s ease' }}></div>
             <Container fluid className="mt-n22 px-6">
                 <Row>
                     <Col xl={8} lg={8} md={12} xs={12}>
                         <Row>
-                            {ProjectsStatsData.map((item, index) => (
+                            {/* Affichage des deux cartes DEHPE et DDD */}
+                            {metrics.map((item, index) => (
                                 <Col xl={6} lg={6} md={12} xs={12} className="mt-6" key={index}>
-                                    <StatRightTopIcon info={item} />
+                                    <div className="animate-up"> 
+                                        <StatRightTopIcon info={item} />
+                                    </div>
                                 </Col>
                             ))}
                         </Row>
                         <Col xl={12} lg={12} md={12} xs={12} className="mt-6">
-                            <SourcesChart data={sources} />
+                            <SourcesChart sources={sources} />
                         </Col>
                     </Col>
                     <Col xl={4} lg={12} md={12} xs={12} className="mt-6">
-                        {/* On remplace TasksPerformance par SourceManager si c'est ton souhait */}
                         <SourceManager 
                             sources={sources} 
                             allGaz={allGaz}
@@ -93,6 +128,17 @@ const Home = () => {
                     <Col xl={6} lg={6} md={12} xs={12}><GazManager /></Col>
                 </Row>
             </Container>
+
+            {/* CSS inline pour l'animation d'entrée */}
+            <style jsx global>{`
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-up {
+                    animation: fadeInUp 0.6s ease-out forwards;
+                }
+            `}</style>
         </Fragment>
     );
 }

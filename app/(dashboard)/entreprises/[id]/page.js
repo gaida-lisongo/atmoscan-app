@@ -16,31 +16,39 @@ import {
   PollutionsDetail,
   GesChart
 } from 'sub-components'
+import { CustomLoader } from '../../page';
 
-const Profile = () => {
+const Entreprise = () => {
   const params = useParams(); // Récupère l'ID vite
   const id = params.id;
   
   const [entreprise, setEntreprise] = useState(null);
+  const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const refreshData = async (id) => {
+    try {
+        const [resS, resE] = await Promise.all([fetch('/api/sources'), fetch(`/api/entreprises?id=${id}`)]);
+        const sJson = await resS.json();
+        const gJson = await resE.json();
+        if (sJson.success) setSources(sJson.data);
+        if (gJson.success) setEntreprise(gJson.data);
+    } catch (error) { console.error("Fetch error", error); }
+    finally { setLoading(false); }
+  };
 
   useEffect(() => {
     if (id) {
-        fetch(`/api/entreprises?id=${id}`)
-            .then(res => res.json())
-            .then(json => {
-                if (json.success) setEntreprise(json.data);
-                setLoading(false);
-            });
+        refreshData(id)
     }
   }, [id]);
   
-  if (loading) return <p>Chargement...</p>;
+  if (loading) return <CustomLoader />;
   if (!entreprise) return <p>Entreprise introuvable.</p>;
   return (
     <Container fluid className="p-6">
       {/* Profile Header  */}
-      <EntrepriseDetail entreprise={entreprise} />
+      <EntrepriseDetail entreprise={entreprise} sources={sources} />
 
       {/* content */}
       <div className="py-6">
@@ -49,14 +57,15 @@ const Profile = () => {
             <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
 
                 {/* Tasks Performance  */}
-                <GesChart />
+                {sources?.length && <GesChart sources={sources?.filter(s => s?.categorie == 'DDD')} entrepriseId={entreprise?._id} />}
 
             </Col>
             {/* card  */}
             <Col xl={8} lg={12} md={12} xs={12}>
 
-                {/* Projects Contributions */}
-                <PollutionsDetail />
+
+                {/* Tasks Performance  */}
+                {sources?.length && <GesChart sources={sources?.filter(s => s?.categorie == 'DEHPE')} entrepriseId={entreprise?._id} />}
 
 
             </Col>
@@ -68,4 +77,4 @@ const Profile = () => {
   )
 }
 
-export default Profile
+export default Entreprise

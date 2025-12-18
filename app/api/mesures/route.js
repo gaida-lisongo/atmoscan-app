@@ -6,18 +6,30 @@ export async function GET(request) {
     try {
         await dbConnect();
         const { searchParams } = new URL(request.url);
+        const id = searchParams.get("id");
+        const sourceId = searchParams.get("sourceId");
         const entrepriseId = searchParams.get("entrepriseId");
-        const gazId = searchParams.get("gazId");
 
-        let filtre = {};
-        if (entrepriseId) filtre.entrepriseId = entrepriseId;
-        if (gazId) filtre.gazId = gazId;
+        // Recherche spécifique par ID
+        if (id) {
+            const mesure = await Mesure.findById(id)
+                .populate('sourceId')
+                .populate('entrepriseId')
+                .populate('ppm.gaz');
+            if (!mesure) return NextResponse.json({ success: false, message: "Mesure non trouvée" }, { status: 404 });
+            return NextResponse.json({ success: true, data: mesure });
+        }
 
-        // Récupère les 100 dernières mesures avec les infos du gaz
-        const mesures = await Mesure.find(filtre)
-            .populate('gazId', 'designation')
-            .sort({ timestamp: -1 })
-            .limit(100);
+        // Filtres optionnels (ex: toutes les mesures d'une entreprise ou d'une source)
+        let query = {};
+        if (sourceId) query.sourceId = sourceId;
+        if (entrepriseId) query.entrepriseId = entrepriseId;
+
+        const mesures = await Mesure.find(query)
+            .populate('sourceId')
+            .populate('entrepriseId')
+            .populate('ppm.gaz')
+            .sort({ createdAt: -1 }); // Les plus récentes en premier
 
         return NextResponse.json({ success: true, data: mesures });
     } catch (error) {
@@ -28,19 +40,32 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         await dbConnect();
-        const body = await request.json(); // Attend { gazId, entrepriseId, ppm }
-
+        const body = await request.json();
+        
+        /* Format attendu du body :
+           {
+             "sourceId": "ID_SOURCE",
+             "entrepriseId": "ID_ENTREPRISE",
+             "ppm": [
+                { "gaz": "ID_GAZ_1", "value": 450 },
+                { "gaz": "ID_GAZ_2", "value": 12 }
+             ]
+           }
+        */
+        
         const nouvelleMesure = await Mesure.create(body);
         
-        return NextResponse.json({ 
-            success: true, 
-            message: "Mesure enregistrée", 
-            data: nouvelleMesure 
-        }, { status: 201 });
+        // On repopulate pour renvoyer un objet complet au client
+        const populatedMesure = await Mesure.findById(nouvelleMesure._id)
+            .populate('sourceId')
+            .populate('ppm.gaz');
+
+        return NextResponse.json({ success: true, data: populatedMesure }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 }
+
 export async function PUT(request) {
     try {
         await dbConnect();
@@ -48,23 +73,32 @@ export async function PUT(request) {
         const id = searchParams.get("id");
         const body = await request.json();
 
-        if (!id) return NextResponse.json({ success: false, message: "ID de mesure manquant" }, { status: 400 });
+        if (!id) return NextResponse.json({ success: false, message: "ID manquant" }, { status: 400 });
 
-        const mesureModifiee = await Mesure.findByIdAndUpdate(id, body, { new: true });
+        const mesureUpdate = await Mesure.findByIdAndUpdate(id, body, { 
+            new: true, 
+            runValidators: true 
+        }).populate('sourceId').populate('ppm.gaz');
 
-        if (!mesureModifiee) return NextResponse.json({ success: false, message: "Mesure non trouvée" }, { status: 404 });
-        return NextResponse.json({ success: true, data: mesureModifiee });
+        if (!mesureUpdate) return NextResponse.json({ success: false, message: "Mesure non trouvée" }, { status: 404 });
+        return NextResponse.json({ success: true, data: mesureUpdate });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 }
+
 export async function DELETE(request) {
     try {
         await dbConnect();
         const { searchParams } = new URL(request.url);
         const id = searchParams.get("id");
-        await Mesure.findByIdAndDelete(id);
-        return NextResponse.json({ success: true, message: "Mesure supprimée" });
+
+        if (!id) return NextResponse.json({ success: false, message: "ID manquant" }, { status: 400 });
+
+        const deleted = await Mesure.findByIdAndDelete(id);
+        if (!deleted) return NextResponse.json({ success: false, message: "Mesure non trouvée" }, { status: 404 });
+
+        return NextResponse.json({ success: true, message: "Mesure supprimée avec succès" });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

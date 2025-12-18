@@ -1,57 +1,83 @@
 'use client'
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from 'next/link';
-import { Card, Dropdown } from 'react-bootstrap';
-import { MoreVertical } from 'react-feather';
+import { Card, Dropdown, Spinner } from 'react-bootstrap';
+import { MoreVertical, BarChart2 } from 'react-feather';
 import dynamic from 'next/dynamic';
+
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
+const SourcesChart = ({ sources = [] }) => {
+    // État pour la source sélectionnée (par défaut la première)
+    const [selectedSource, setSelectedSource] = useState(null);
 
-const SourcesChart = () => {
-    const perfomanceChartSeries = [100, 78, 89];
-    const perfomanceChartOptions = {
-        dataLabels: { enabled: !1 },
-        labels: ['Direct', 'Referral', 'Organic'],
-        colors: ['#28a745', '#ffc107', '#dc3545'],
-        plotOptions: {
-            radialBar: {
-                startAngle: -168,
-                endAngle: -450,
-                hollow: {
-                    size: '55%',
-                },
-                track: {
-                    background: 'transaprent',
-                },
-                dataLabels: {
-                    show: false,
-                }
+    useEffect(() => {
+        if (sources.length > 0 && !selectedSource) {
+            setSelectedSource(sources[0]);
+        }
+    }, [sources]);
+
+    // Préparation des données pour l'histogramme
+    const gazList = selectedSource?.gaz || [];
+    const categories = gazList.map(g => g.designation || 'Gaz');
+    
+    // Séries : Seuils Bon (Vert), Modéré (Jaune), Dangereux (Rouge)
+    // Note : On utilise les valeurs du référentiel Gaz
+    const series = [
+        {
+            name: 'Seuil Bon',
+            data: gazList.map(g => g.seuilBon || 400) // Valeur par défaut si non définie
+        },
+        {
+            name: 'Seuil Modéré',
+            data: gazList.map(g => g.seuilModere || 1000)
+        },
+        {
+            name: 'Seuil Dangereux',
+            data: gazList.map(g => g.seuilDangereux || 1500)
+        }
+    ];
+
+    const chartOptions = {
+        chart: {
+            type: 'bar',
+            toolbar: { show: false },
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800,
+                animateGradually: { enabled: true, delay: 150 },
+                dynamicAnimation: { enabled: true, speed: 350 }
             }
         },
-        chart: { type: 'radialBar' },
-        stroke: { lineCap: "round" },
-        responsive: [
-            {
-                breakpoint: 480,
-                options: {
-                    chart: {
-                        height: 300
-                    }
-                }
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '55%',
+                endingShape: 'rounded',
+                borderRadius: 4
             },
-            {
-                breakpoint: 5000,
-                options: {
-                    chart: {
-                        height: 320
-                    }
-                }
-            }
-        ]
+        },
+        dataLabels: { enabled: false },
+        stroke: { show: true, width: 2, colors: ['transparent'] },
+        colors: ['#28a745', '#ffc107', '#dc3545'], // Vert, Jaune, Rouge
+        xaxis: {
+            categories: categories,
+            labels: { style: { colors: '#64748b', fontSize: '12px' } }
+        },
+        yaxis: {
+            title: { text: 'Concentration (PPM)', style: { color: '#64748b' } }
+        },
+        fill: { opacity: 1 },
+        tooltip: {
+            y: { formatter: (val) => `${val} PPM` }
+        },
+        grid: { borderColor: '#f1f5f9' },
+        legend: { position: 'top', horizontalAlign: 'right' }
     };
 
     const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
-        (<Link
+        <Link
             href=""
             ref={ref}
             onClick={(e) => {
@@ -60,70 +86,80 @@ const SourcesChart = () => {
             }}
             className="text-muted text-primary-hover">
             {children}
-        </Link>)
+        </Link>
     ));
-
     CustomToggle.displayName = 'CustomToggle';
 
-    const ActionMenu = () => {
+    const ActionMenu = () => (
+        <Dropdown>
+            <Dropdown.Toggle as={CustomToggle}>
+                <MoreVertical size="15px" className="text-muted" />
+            </Dropdown.Toggle>
+            <Dropdown.Menu align={'end'} style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                <Dropdown.Header>Choisir une source</Dropdown.Header>
+                {sources.map((source) => (
+                    <Dropdown.Item 
+                        key={source._id} 
+                        onClick={() => setSelectedSource(source)}
+                        active={selectedSource?._id === source._id}
+                    >
+                        {source.designation}
+                    </Dropdown.Item>
+                ))}
+            </Dropdown.Menu>
+        </Dropdown>
+    );
+
+    if (!selectedSource) {
         return (
-            <Dropdown>
-                <Dropdown.Toggle as={CustomToggle}>
-                    <MoreVertical size="15px" className="text-muted" />
-                </Dropdown.Toggle>
-                <Dropdown.Menu align={'end'}>
-                    <Dropdown.Item eventKey="1">
-                        Action
-                    </Dropdown.Item>
-                    <Dropdown.Item eventKey="2">
-                        Another action
-                    </Dropdown.Item>
-                    <Dropdown.Item eventKey="3">
-                        Something else here
-                    </Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown>
+            <Card className="h-100 d-flex align-items-center justify-content-center">
+                <Spinner animation="border" variant="primary" />
+            </Card>
         );
-    };
+    }
 
     return (
-        <Card className="h-100">
+        <Card className="h-100 shadow-sm">
             <Card.Body>
-                <div className="d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center justify-content-between mb-4">
                     <div>
-                        <h4 className="mb-0">Tasks Performance </h4>
+                        <h4 className="mb-0">Seuils par Source</h4>
+                        <p className="text-muted small mb-0">
+                            Source actuelle : <span className="fw-bold text-primary">{selectedSource.designation}</span>
+                        </p>
                     </div>
                     <ActionMenu />
                 </div>
-                <div className="mb-8">
+
+                <div className="mb-4">
                     <Chart
-                        options={perfomanceChartOptions}
-                        series={perfomanceChartSeries}
-                        type="radialBar"
+                        options={chartOptions}
+                        series={series}
+                        type="bar"
+                        height={320}
                         width="100%"
                     />
                 </div>
-                {/* icon with content  */}
-                <div className="d-flex align-items-center justify-content-around">
+
+                <div className="d-flex align-items-center justify-content-around bg-light py-3 rounded">
                     <div className="text-center">
-                        <i className="fe fe-check-circle text-success fs-3"></i>
-                        <h1 className="mt-3  mb-1 fw-bold">76%</h1>
-                        <p>Completed</p>
+                        <div className="text-success small fw-bold text-uppercase">Sain</div>
+                        <h3 className="mb-0 fw-bold">{gazList.length}</h3>
+                        <p className="text-muted mb-0 small">Gaz suivis</p>
                     </div>
                     <div className="text-center">
-                        <i className="fe fe-trending-up text-warning fs-3"></i>
-                        <h1 className="mt-3  mb-1 fw-bold">32%</h1>
-                        <p>In-Progress</p>
+                        <div className="text-warning small fw-bold text-uppercase">Type</div>
+                        <h3 className="mb-0 fw-bold">{selectedSource.categorie}</h3>
+                        <p className="text-muted mb-0 small">Réglementation</p>
                     </div>
                     <div className="text-center">
-                        <i className="fe fe-trending-down text-danger fs-3"></i>
-                        <h1 className="mt-3  mb-1 fw-bold">13%</h1>
-                        <p>Behind</p>
+                        <BarChart2 size="24px" className="text-primary mt-2" />
+                        <p className="text-muted mb-0 small mt-1">Comparatif</p>
                     </div>
                 </div>
             </Card.Body>
         </Card>
-    )
-}
+    );
+};
 
-export default SourcesChart
+export default SourcesChart;
