@@ -7,6 +7,7 @@
 import EntrepriseManager from 'sub-components/dashboard/EntrepriseManager';
 import ActiveProjects from 'sub-components/dashboard/ActiveProjects';
 import TasksPerformance from 'sub-components/dashboard/TasksPerformance';
+import GesChart from 'sub-components/dashboard/GesChart';
 import Teams from 'sub-components/dashboard/Teams';
 import GazManager from 'sub-components/dashboard/GazManager';
 
@@ -15,7 +16,9 @@ import AboutMe from 'sub-components/profile/AboutMe';
 import ActivityFeed from 'sub-components/profile/ActivityFeed';
 import MyTeam from 'sub-components/profile/MyTeam';
 import ProfileHeader from 'sub-components/profile/ProfileHeader';
+import EntrepriseDetail from 'sub-components/profile/EntrepriseDetail';
 import ProjectsContributions from 'sub-components/profile/ProjectsContributions';
+import PollutionsDetail from 'sub-components/profile/PollutionsDetail';
 import RecentFromBlog from 'sub-components/profile/RecentFromBlog';
 
 // sub components for /pages/billing
@@ -34,6 +37,7 @@ export {
    EntrepriseManager,
    ActiveProjects,
    TasksPerformance,
+   GesChart,
    Teams,
    GazManager,
    
@@ -41,7 +45,9 @@ export {
    ActivityFeed,
    MyTeam,
    ProfileHeader,
+   EntrepriseDetail,
    ProjectsContributions,
+   PollutionsDetail,
    RecentFromBlog,
 
    CurrentPlan,
