@@ -71,7 +71,7 @@ const EntrepriseManager = () => {
     );
 
     return (
-        <div className="bg-white min-vh-100 p-2 p-md-4 rounded shadow-sm">
+        <div className="bg-white p-2 p-md-4 rounded shadow-sm">
             {/* EN-TETE RESPONSIVE */}
             <div className="mb-4">
                 {/* Titre et description */}

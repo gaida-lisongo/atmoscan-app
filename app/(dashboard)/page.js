@@ -109,7 +109,7 @@ const Home = () => {
             ></div>
             <Container fluid className="mt-n22 px-6">
                 <Row>
-                    <Col xl={8} lg={8} md={12} xs={12}>
+                    <Col xl={6} lg={6} md={12} xs={12}>
                         <Row>
                             {/* Affichage des deux cartes DEHPE et DDD */}
                             {metrics.map((item, index) => (
@@ -124,7 +124,7 @@ const Home = () => {
                             <SourcesChart sources={sources} />
                         </Col>
                     </Col>
-                    <Col xl={4} lg={12} md={12} xs={12} className="mt-6">
+                    <Col xl={6} lg={6} md={12} xs={12} className="mt-6">
                         <EntrepriseManager />
                     </Col>
                 </Row>

@@ -28,6 +28,31 @@ const QuickMenu = () => {
         query: '(min-width: 1224px)'
     })
 
+    const userMenu = (metier) => [
+        ...metier,
+        {
+            title: 'Profile',
+            icon: 'fe fe-user',
+            link: '/user/profile',
+            action : null,
+            className: ''
+        },
+        {
+            title: 'Securité',
+            icon: 'fe fe-settings',
+            link: '/user/settings',
+            action : null,
+            className: ''
+        },
+        {
+            title: 'Se deconnecté',
+            icon: 'fe fe-log-out',
+            link: '#',
+            action : () => { alert('Déconnexion en cours...'); },
+            className: 'text-danger'
+        }
+    ]
+
     const Notifications = () => {
         return (
             <SimpleBar style={{ maxHeight: '300px' }}>
@@ -108,21 +133,25 @@ const QuickMenu = () => {
                             </div>
                             <div className=" dropdown-divider mt-3 mb-2"></div>
                     </Dropdown.Item>
-                    <Dropdown.Item eventKey="2">
-                        <i className="fe fe-user me-2"></i> Edit Profile
-                    </Dropdown.Item>
-                    <Dropdown.Item eventKey="3">
-                        <i className="fe fe-activity me-2"></i> Activity Log
-                    </Dropdown.Item>
-                    <Dropdown.Item className="text-primary">
-                        <i className="fe fe-star me-2"></i> Go Pro
-                    </Dropdown.Item>
-                    <Dropdown.Item >
-                        <i className="fe fe-settings me-2"></i> Account Settings
-                    </Dropdown.Item>
-                    <Dropdown.Item>
-                        <i className="fe fe-power me-2"></i>Sign Out
-                    </Dropdown.Item>
+                    {
+                        userMenu([{
+                            title: 'Administration',
+                            icon: 'fe fe-user-check',
+                            link: '/user/',
+                            action : null,
+                            className: 'text-primary'
+                        }]).map((item, index) => (
+                            <Dropdown.Item 
+                                eventKey={index + 2} 
+                                key={index}
+                                href={item.link}
+                                className={item.className}
+                                onClick={item.action}
+                            >
+                                <i className={`${item.icon} me-2`}></i> {item.title}
+                            </Dropdown.Item>
+                        ))
+                    }
                 </Dropdown.Menu>
             </Dropdown>
         </ListGroup>
@@ -183,21 +212,25 @@ const QuickMenu = () => {
                             </div>
                             <div className=" dropdown-divider mt-3 mb-2"></div>
                     </Dropdown.Item>
-                    <Dropdown.Item eventKey="2">
-                        <i className="fe fe-user me-2"></i> Edit Profile
-                    </Dropdown.Item>
-                    <Dropdown.Item eventKey="3">
-                        <i className="fe fe-activity me-2"></i> Activity Log
-                    </Dropdown.Item>
-                    <Dropdown.Item className="text-primary">
-                        <i className="fe fe-star me-2"></i> Go Pro
-                    </Dropdown.Item>
-                    <Dropdown.Item >
-                        <i className="fe fe-settings me-2"></i> Account Settings
-                    </Dropdown.Item>
-                    <Dropdown.Item>
-                        <i className="fe fe-power me-2"></i>Sign Out
-                    </Dropdown.Item>
+                    {
+                        userMenu([{
+                            title: 'Administration',
+                            icon: 'fe fe-user-check',
+                            link: '/user/',
+                            action : null,
+                            className: 'text-primary'
+                        }]).map((item, index) => (
+                            <Dropdown.Item 
+                                eventKey={index + 2} 
+                                key={index}
+                                href={item.link}
+                                className={item.className}
+                                onClick={item.action}
+                            >
+                                <i className={`${item.icon} me-2`}></i> {item.title}
+                            </Dropdown.Item>
+                        ))
+                    }
                 </Dropdown.Menu>
             </Dropdown>
         </ListGroup>
