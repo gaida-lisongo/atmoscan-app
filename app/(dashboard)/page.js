@@ -125,6 +125,11 @@ const Home = () => {
                         </Col>
                     </Col>
                     <Col xl={4} lg={12} md={12} xs={12} className="mt-6">
+                        <EntrepriseManager />
+                    </Col>
+                </Row>
+                <Row className="my-6">
+                    <Col xl={6} lg={6} md={12} xs={12}>                    
                         <SourceManager 
                             sources={sources} 
                             allGaz={allGaz}
@@ -133,9 +138,6 @@ const Home = () => {
                             onDelete={handleDeleteSource}
                         />
                     </Col>
-                </Row>
-                <Row className="my-6">
-                    <Col xl={6} lg={6} md={12} xs={12}><EntrepriseManager /></Col>
                     <Col xl={6} lg={6} md={12} xs={12}><GazManager /></Col>
                 </Row>
             </Container>
