@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
-import { Privilege } from "@/models/User"; 
+import { Privilege } from "@/lib/models/User"; 
 
 export async function GET(req) {
     await connectDB();
@@ -41,6 +41,18 @@ export async function PUT(req) {
         
         const privilege = await Privilege.findByIdAndUpdate(id, body, { new: true });
         return NextResponse.json({ success: true, data: privilege });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    }
+}
+
+export async function DELETE(req) {
+    await connectDB();
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
+        await Privilege.findByIdAndDelete(id);
+        return NextResponse.json({ success: true, message: "Privilège supprimé" });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }

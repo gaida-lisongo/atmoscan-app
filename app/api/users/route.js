@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db"; // Ajuste le chemin selon ton projet
-import { User } from "@/models/User"; 
+import { User } from "@/lib/models/User"; 
 
 export async function GET(req) {
     await connectDB();

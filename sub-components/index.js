@@ -5,6 +5,7 @@
 
 // sub components for /pages/dashboard
 import EntrepriseManager from 'sub-components/dashboard/EntrepriseManager';
+import UserManager from 'sub-components/dashboard/UserManager';
 import ActiveProjects from 'sub-components/dashboard/ActiveProjects';
 import TasksPerformance from 'sub-components/dashboard/TasksPerformance';
 import SourceManager from 'sub-components/dashboard/SourceManager';
@@ -37,6 +38,7 @@ import Preferences from 'sub-components/settings/Preferences';
 
 export {
    EntrepriseManager,
+   UserManager,
    ActiveProjects,
    TasksPerformance,
    SourceManager,
