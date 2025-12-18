@@ -95,7 +95,18 @@ const Home = () => {
     return (
         <Fragment>
             {/* Animation de dégradé en arrière-plan */}
-            <div className="bg-primary pt-10 pb-21" style={{ transition: 'all 0.5s ease' }}></div>
+            <div 
+                className="rounded-top pt-10 pb-21 shadow-sm" 
+                style={{  
+                    backgroundImage: 'url(/images/industrie.jpg)', 
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    height: '220px', 
+                    width: '100%',
+                    transition: 'all 0.5s ease'
+                }}
+            ></div>
             <Container fluid className="mt-n22 px-6">
                 <Row>
                     <Col xl={8} lg={8} md={12} xs={12}>

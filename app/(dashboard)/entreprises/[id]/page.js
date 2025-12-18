@@ -46,7 +46,7 @@ const Entreprise = () => {
   if (loading) return <CustomLoader />;
   if (!entreprise) return <p>Entreprise introuvable.</p>;
   return (
-    <Container fluid className="p-6">
+    <Container className="p-6">
       {/* Profile Header  */}
       <EntrepriseDetail entreprise={entreprise} sources={sources} />
 

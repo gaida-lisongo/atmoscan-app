@@ -17,12 +17,12 @@ export default function DashboardLayout({ children }) {
 
 	return (
 		<div id="db-wrapper" className={`${showMenu ? '' : 'toggled'}`}>
-			<div className="navbar-vertical navbar">
+			{/* <div className="navbar-vertical navbar">
 				<NavbarVertical
 					showMenu={showMenu}
 					onClick={(value) => setShowMenu(value)}
 				/>
-			</div>
+			</div> */}
 			<div id="page-content">
 				<div className="header">
 					<NavbarTop
