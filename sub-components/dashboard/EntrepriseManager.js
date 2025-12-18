@@ -76,7 +76,7 @@ const EntrepriseManager = () => {
             <div className="mb-4">
                 {/* Titre et description */}
                 <div className="mb-3 mb-md-4">
-                    <h2 className="fw-bold text-dark mb-1 fs-4 fs-md-2">LANAScan</h2>
+                    <h2 className="fw-bold text-dark mb-1 fs-4 fs-md-2">AtmoScan</h2>
                     <p className="text-muted mb-0 small">Annuaire des structures industrielles</p>
                 </div>
                 

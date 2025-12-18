@@ -1,9 +1,9 @@
 'use client'
 import Link from 'next/link';
-import { Col, Row, Card, Button, Modal, Form, InputGroup, Badge, Dropdown, Alert, Container } from 'react-bootstrap';
+import { Col, Row, Card, Button, Modal, Form, InputGroup, Badge, Dropdown, Alert } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 
-const UserManager = () => {
+const UserManagerSimple = () => {
     const [users, setUsers] = useState([]);
     const [enterprises, setEnterprises] = useState([]);
     const [privileges, setPrivileges] = useState([]);
@@ -21,6 +21,10 @@ const UserManager = () => {
     // Loading states
     const [loading, setLoading] = useState(false);
     const [privilegeLoading, setPrivilegeLoading] = useState(false);
+    
+    // Authorization types
+    const authorizationTypes = ['ADMIN', 'DDD', 'DEHPE', 'OPERATOR'];
+    const [selectedAuthorization, setSelectedAuthorization] = useState('');
 
     // Fetch functions
     const fetchUsers = async () => {
@@ -66,6 +70,11 @@ const UserManager = () => {
         fetchPrivileges();
     }, []);
 
+    // Debug des privilèges
+    useEffect(() => {
+        console.log('Privilèges chargés:', privileges);
+    }, [privileges]);
+
     // User management functions
     const handleSubmitUser = async (e) => {
         e.preventDefault();
@@ -73,7 +82,6 @@ const UserManager = () => {
         const formData = new FormData(e.target);
         const payload = Object.fromEntries(formData.entries());
 
-        // Convert date string to Date object if provided
         if (payload.date_naissance) {
             payload.date_naissance = new Date(payload.date_naissance);
         }
@@ -134,9 +142,13 @@ const UserManager = () => {
         const formData = new FormData(e.target);
         const payload = Object.fromEntries(formData.entries());
         
-        // Add userId and convert entreprises to array
         payload.userId = selectedUserId;
-        payload.entreprises = formData.getAll('entreprises');
+        // Only include enterprises if authorization is OPERATOR
+        if (payload.designation === 'OPERATOR') {
+            payload.entreprises = formData.getAll('entreprises');
+        } else {
+            payload.entreprises = [];
+        }
 
         try {
             const res = await fetch('/api/privileges', {
@@ -147,6 +159,7 @@ const UserManager = () => {
             if (res.ok) {
                 fetchPrivileges(selectedUserId);
                 e.target.reset();
+                setSelectedAuthorization('');
             }
         } catch (error) {
             console.error("Erreur création privilège", error);
@@ -175,18 +188,22 @@ const UserManager = () => {
     };
 
     const getUserPrivilegesCount = (userId) => {
-        return privileges.filter(p => p.userId === userId).length;
+        return privileges.filter(p => {
+            // Gestion cas où p.userId peut être une string ou un objet avec _id
+            const privilegeUserId = typeof p.userId === 'string' ? p.userId : p.userId?._id;
+            return privilegeUserId === userId;
+        }).length;
     };
 
     return (
-        <Container fluid className="p-2 p-md-4">
+        <div className="w-100 bg-white min-vh-100 p-2 p-md-4">
             {/* EN-TETE SIMPLE */}
             <div className="mb-4">
                 <div className="mb-3 mb-md-4">
                     <h2 className="fw-bold text-dark mb-1 fs-4 fs-md-2">
                         👥 Gestion des Utilisateurs
                     </h2>
-                    <p className="text-muted mb-0 small">Administration des comptes utilisateurs et privilèges</p>
+                    <p className="text-muted mb-0 small">Administration des comptes utilisateurs et autorisations</p>
                 </div>
                 
                 {/* Actions Header */}
@@ -208,7 +225,7 @@ const UserManager = () => {
                     
                     <Button 
                         variant="primary" 
-                        className="rounded-3 px-3 px-md-4 py-2 d-flex align-items-center justify-content-center fw-semibold" 
+                        className="rounded-3 px-3 px-md-4 py-2 fw-semibold" 
                         onClick={() => handleOpenUserModal()}
                         style={{ 
                             background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
@@ -223,137 +240,103 @@ const UserManager = () => {
                 {/* Statistiques */}
                 <div className="mt-3 d-flex gap-3 text-muted small">
                     <div>👤 {users.length} utilisateurs</div>
-                    <div>🛡️ {privileges.length} privilèges</div>
+                    <div>🛡️ {privileges.length} autorisations</div>
                     <div>🔍 {filteredUsers.length} résultats</div>
                 </div>
             </div>
 
-            {/* LISTE UTILISATEURS */}
-            <Row className="g-3 g-md-4">
-                {filteredUsers.map((user) => (
-                    <Col xs={12} lg={6} xl={4} key={user._id} className="mb-3 mb-md-4">
-                        <Card className="border-0 shadow-sm h-100 transition-all" 
+            {/* LISTE UTILISATEURS PLEINE LARGEUR */}
+            <Row className="g-3 g-md-4">{filteredUsers.map((user) => {
+                    const userPrivilegesCount = getUserPrivilegesCount(user._id);
+                    console.log(`User ${user.username} (${user._id}) has ${userPrivilegesCount} privileges`);
+                    
+                    return (
+                    <Col xs={12} lg={6} xl={3} key={user._id} className="mb-3">
+                        <Card className="border shadow-sm h-100" 
                               style={{ 
-                                  borderRadius: '20px',
-                                  transition: 'all 0.3s ease',
-                                  backgroundColor: '#fafbfc',
-                                  minHeight: '320px'
-                              }}
-                              onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(-2px)';
-                                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
-                              }}
-                              onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(0)';
-                                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
+                                  borderRadius: '16px',
+                                  minHeight: '280px'
                               }}>
                             <Card.Body className="p-4 d-flex flex-column">
-                                {/* Header de la carte */}
-                                <div className="d-flex align-items-start justify-content-between mb-4">
+                                {/* Header */}
+                                <div className="d-flex align-items-center justify-content-between mb-3">
                                     <div className="d-flex align-items-center flex-grow-1">
-                                        <div className="bg-white rounded-3 shadow-sm d-flex align-items-center justify-content-center fw-bold text-white position-relative me-3" 
-                                             style={{ 
-                                                 width: '60px', 
-                                                 height: '60px', 
-                                                 background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)'
-                                             }}>
+                                        <div className="bg-success rounded-3 shadow-sm d-flex align-items-center justify-content-center fw-bold text-white me-3" 
+                                             style={{ width: '50px', height: '50px' }}>
                                             {user.username.charAt(0).toUpperCase()}
-                                            <div className="position-absolute bottom-0 end-0 bg-success rounded-circle" 
-                                                 style={{ width: '14px', height: '14px', border: '2px solid white' }}></div>
                                         </div>
-                                        <div className="flex-grow-1 overflow-hidden">
-                                            <h5 className="mb-2 text-truncate fw-bold" style={{ fontSize: '1.1rem' }}>
-                                                {user.username}
-                                            </h5>
-                                            <Badge bg="light" className="text-primary fw-normal px-3 py-2" style={{ fontSize: '0.75rem' }}>
-                                                {user.matricule}
-                                            </Badge>
+                                        <div className="flex-grow-1">
+                                            <h6 className="mb-1 fw-bold">{user.username}</h6>
+                                            <Badge bg="light" className="text-primary">{user.matricule}</Badge>
                                         </div>
                                     </div>
                                     
                                     <Dropdown>
                                         <Dropdown.Toggle 
-                                            as="div" 
-                                            className="btn btn-light btn-sm rounded-3 d-flex align-items-center justify-content-center"
-                                            style={{ width: '32px', height: '32px', cursor: 'pointer' }}>
-                                            <MoreVertical size="14" className="text-muted" />
+                                            as="button" 
+                                            className="btn btn-light btn-sm rounded-3 border-0"
+                                            style={{ width: '30px', height: '30px' }}>
+                                            ⋮
                                         </Dropdown.Toggle>
-                                        <Dropdown.Menu align="end" className="border-0 shadow-lg rounded-3">
-                                            <Dropdown.Item onClick={() => handleOpenUserModal(user)} className="d-flex align-items-center">
-                                                <Edit size="14" className="me-2 text-primary" /> Modifier
+                                        <Dropdown.Menu align="end">
+                                            <Dropdown.Item onClick={() => handleOpenUserModal(user)}>
+                                                ✏️ Modifier
                                             </Dropdown.Item>
-                                            <Dropdown.Divider />
-                                            <Dropdown.Item className="text-danger d-flex align-items-center" onClick={() => handleDeleteUser(user._id)}>
-                                                <Trash2 size="14" className="me-2" /> Supprimer
+                                            <Dropdown.Item className="text-danger" onClick={() => handleDeleteUser(user._id)}>
+                                                🗑️ Supprimer
                                             </Dropdown.Item>
                                         </Dropdown.Menu>
                                     </Dropdown>
                                 </div>
 
-                                {/* Informations utilisateur */}
-                                <div className="mb-4 flex-grow-1">
+                                {/* Informations */}
+                                <div className="mb-3 flex-grow-1">
                                     {user.fonction && (
-                                        <div className="d-flex align-items-center text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                                            <Briefcase size="16" className="me-3 text-primary flex-shrink-0" />
-                                            <span className="fw-medium">{user.fonction}</span>
-                                            {user.departement && <span className="ms-2 text-black-50">• {user.departement}</span>}
+                                        <div className="text-muted mb-2 small">
+                                            💼 {user.fonction}
+                                            {user.departement && ` • ${user.departement}`}
                                         </div>
                                     )}
                                     
                                     {user.email && (
-                                        <div className="d-flex align-items-center text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                                            <Mail size="16" className="me-3 text-primary flex-shrink-0" />
-                                            <span className="text-truncate">{user.email}</span>
+                                        <div className="text-muted mb-2 small">
+                                            ✉️ {user.email}
                                         </div>
                                     )}
 
                                     {user.telephone && (
-                                        <div className="d-flex align-items-center text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                                            <Phone size="16" className="me-3 text-primary flex-shrink-0" />
-                                            <span>{user.telephone}</span>
-                                        </div>
-                                    )}
-
-                                    {user.date_naissance && (
-                                        <div className="d-flex align-items-center text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                                            <Calendar size="16" className="me-3 text-primary flex-shrink-0" />
-                                            <span>Né(e) le {formatDate(user.date_naissance)}</span>
+                                        <div className="text-muted mb-2 small">
+                                            📞 {user.telephone}
                                         </div>
                                     )}
 
                                     {user.adresse && (
-                                        <div className="d-flex align-items-start text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                                            <MapPin size="16" className="me-3 text-primary flex-shrink-0 mt-1" />
-                                            <span className="lh-sm">{user.adresse}</span>
+                                        <div className="text-muted mb-2 small">
+                                            📍 {user.adresse}
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Actions */}
-                                <div className="d-flex gap-2 mt-auto">
-                                    <Button 
-                                        variant="outline-primary" 
-                                        size="sm" 
-                                        className="flex-grow-1 rounded-3 d-flex align-items-center justify-content-center py-2 fw-semibold"
-                                        onClick={() => handleOpenPrivilegeModal(user._id)}
-                                        style={{ fontSize: '0.85rem' }}
-                                    >
-                                        <Shield size="16" className="me-2" />
-                                        Privilèges ({getUserPrivilegesCount(user._id)})
-                                    </Button>
-                                </div>
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm" 
+                                    className="w-100 rounded-3 mt-auto"
+                                    onClick={() => handleOpenPrivilegeModal(user._id)}
+                                >
+                                    🛡️ Autorisations ({userPrivilegesCount})
+                                </Button>
                             </Card.Body>
                         </Card>
                     </Col>
-                ))}
+                    );
+                })}
             </Row>
 
             {/* État vide */}
             {filteredUsers.length === 0 && (
                 <div className="text-center py-5">
-                    <div className="mb-3">
-                        <UserIcon size="48" className="text-muted" />
-                    </div>
+                    <div className="mb-3" style={{ fontSize: '3rem' }}>👤</div>
                     <h5 className="text-muted mb-2">
                         {searchTerm ? 'Aucun utilisateur trouvé' : 'Aucun utilisateur enregistré'}
                     </h5>
@@ -369,22 +352,17 @@ const UserManager = () => {
                             onClick={() => handleOpenUserModal()}
                             className="rounded-3 px-4"
                         >
-                            <Plus size="18" className="me-2" />
-                            Créer un utilisateur
+                            ➕ Créer un utilisateur
                         </Button>
                     )}
                 </div>
             )}
 
             {/* MODAL UTILISATEUR */}
-            <Modal show={showUserModal} onHide={handleCloseUserModal} centered backdrop="static" size="lg">
-                <Modal.Header closeButton className="border-0 pb-2" style={{ background: 'linear-gradient(135deg, #f0fff4 0%, #e8f8f0 100%)' }}>
-                    <Modal.Title className="fw-bold d-flex align-items-center" style={{ fontSize: '1.25rem' }}>
-                        <div className="bg-success rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" 
-                             style={{ width: '40px', height: '40px' }}>
-                            {currentUser ? <Edit size="20" color="white" /> : <Plus size="20" color="white" />}
-                        </div>
-                        {currentUser ? 'Éditer l\'utilisateur' : 'Nouvel utilisateur'}
+            <Modal show={showUserModal} onHide={handleCloseUserModal} centered size="lg">
+                <Modal.Header closeButton className="border-0 pb-2">
+                    <Modal.Title className="fw-bold">
+                        {currentUser ? '✏️ Éditer l\'utilisateur' : '➕ Nouvel utilisateur'}
                     </Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleSubmitUser}>
@@ -558,49 +536,35 @@ const UserManager = () => {
                         </Row>
                     </Modal.Body>
                     <Modal.Footer className="border-0 pt-0 pb-4">
-                        <div className="d-flex gap-3 w-100 flex-column flex-md-row">
+                        <div className="d-flex gap-3 w-100">
                             <Button 
                                 variant="light" 
                                 onClick={handleCloseUserModal}
-                                className="rounded-3 px-4 py-2 flex-grow-1 flex-md-grow-0"
+                                className="rounded-3 px-4 py-2 flex-grow-1"
                             >
                                 Annuler
                             </Button>
                             <Button 
                                 type="submit" 
                                 disabled={loading}
-                                className="rounded-3 px-4 py-2 flex-grow-1 flex-md-grow-0"
+                                className="rounded-3 px-4 py-2 flex-grow-1"
                                 style={{ 
                                     background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                                    border: 'none',
-                                    fontWeight: '600'
+                                    border: 'none'
                                 }}
                             >
-                                {loading ? (
-                                    <>
-                                        <div className="spinner-border spinner-border-sm me-2" role="status">
-                                            <span className="visually-hidden">Loading...</span>
-                                        </div>
-                                        Enregistrement...
-                                    </>
-                                ) : (
-                                    currentUser ? 'Mettre à jour' : 'Créer l\'utilisateur'
-                                )}
+                                {loading ? '⏳ Enregistrement...' : (currentUser ? '💾 Mettre à jour' : '➕ Créer')}
                             </Button>
                         </div>
                     </Modal.Footer>
                 </Form>
             </Modal>
 
-            {/* MODAL PRIVILÈGES */}
-            <Modal show={showPrivilegeModal} onHide={handleClosePrivilegeModal} centered backdrop="static" size="xl">
-                <Modal.Header closeButton className="border-0 pb-2" style={{ background: 'linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%)' }}>
-                    <Modal.Title className="fw-bold d-flex align-items-center" style={{ fontSize: '1.25rem' }}>
-                        <div className="bg-warning rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" 
-                             style={{ width: '40px', height: '40px' }}>
-                            <Shield size="20" color="white" />
-                        </div>
-                        Gestion des Privilèges
+            {/* MODAL AUTORISATIONS */}
+            <Modal show={showPrivilegeModal} onHide={handleClosePrivilegeModal} centered size="xl">
+                <Modal.Header closeButton className="border-0 pb-2">
+                    <Modal.Title className="fw-bold">
+                        🛡️ Gestion des Autorisations
                         {selectedUserId && (
                             <Badge bg="light" className="text-muted ms-2">
                                 {users.find(u => u._id === selectedUserId)?.username}
@@ -609,24 +573,28 @@ const UserManager = () => {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="py-4">
-                    {/* Formulaire d'ajout de privilège */}
+                    {/* Formulaire d'ajout d'autorisation */}
                     <Card className="border-0 bg-light mb-4">
                         <Card.Body className="p-3">
-                            <h6 className="fw-bold mb-3 d-flex align-items-center">
-                                <Plus size="16" className="me-2 text-success" />
-                                Ajouter un nouveau privilège
-                            </h6>
+                            <h6 className="fw-bold mb-3">➕ Ajouter une nouvelle autorisation</h6>
                             <Form onSubmit={handleSubmitPrivilege}>
                                 <Row>
                                     <Col md={4} className="mb-3">
                                         <Form.Group>
-                                            <Form.Label className="small fw-bold">Désignation *</Form.Label>
+                                            <Form.Label className="small fw-bold">Type d'autorisation *</Form.Label>
                                             <Form.Control 
+                                                as="select"
                                                 className="border rounded-3 py-2 px-3" 
                                                 name="designation" 
                                                 required 
-                                                placeholder="Ex: Admin System"
-                                            />
+                                                value={selectedAuthorization}
+                                                onChange={(e) => setSelectedAuthorization(e.target.value)}
+                                            >
+                                                <option value="">Choisir une autorisation...</option>
+                                                {authorizationTypes.map(auth => (
+                                                    <option key={auth} value={auth}>{auth}</option>
+                                                ))}
+                                            </Form.Control>
                                         </Form.Group>
                                     </Col>
                                     <Col md={4} className="mb-3">
@@ -641,27 +609,30 @@ const UserManager = () => {
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={4} className="mb-3">
-                                        <Form.Group>
-                                            <Form.Label className="small fw-bold">Entreprises associées</Form.Label>
-                                            <Form.Control 
-                                                as="select"
-                                                multiple
-                                                className="border rounded-3 py-2 px-3" 
-                                                name="entreprises"
-                                                style={{ minHeight: '80px' }}
-                                            >
-                                                {enterprises.map(enterprise => (
-                                                    <option key={enterprise._id} value={enterprise._id}>
-                                                        {enterprise.designation}
-                                                    </option>
-                                                ))}
-                                            </Form.Control>
-                                            <Form.Text className="text-muted small">
-                                                Maintenez Ctrl pour sélectionner plusieurs entreprises
-                                            </Form.Text>
-                                        </Form.Group>
-                                    </Col>
+                                    {selectedAuthorization === 'OPERATOR' && (
+                                        <Col md={4} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold">Entreprises gérées *</Form.Label>
+                                                <Form.Control 
+                                                    as="select"
+                                                    multiple
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="entreprises"
+                                                    style={{ minHeight: '80px' }}
+                                                    required={selectedAuthorization === 'OPERATOR'}
+                                                >
+                                                    {enterprises.map(enterprise => (
+                                                        <option key={enterprise._id} value={enterprise._id}>
+                                                            {enterprise.designation}
+                                                        </option>
+                                                    ))}
+                                                </Form.Control>
+                                                <div className="text-muted small mt-1">
+                                                    Maintenez Ctrl pour sélectionner plusieurs entreprises
+                                                </div>
+                                            </Form.Group>
+                                        </Col>
+                                    )}
                                 </Row>
                                 <div className="text-end">
                                     <Button 
@@ -670,34 +641,21 @@ const UserManager = () => {
                                         variant="success"
                                         className="rounded-3 px-4"
                                     >
-                                        {privilegeLoading ? (
-                                            <>
-                                                <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-                                                Création...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Plus size="16" className="me-2" />
-                                                Créer le privilège
-                                            </>
-                                        )}
+                                        {privilegeLoading ? '⏳ Création...' : '➕ Créer l\'autorisation'}
                                     </Button>
                                 </div>
                             </Form>
                         </Card.Body>
                     </Card>
 
-                    {/* Liste des privilèges existants */}
+                    {/* Liste des autorisations existantes */}
                     <div>
-                        <h6 className="fw-bold mb-3 d-flex align-items-center">
-                            <Shield size="16" className="me-2 text-primary" />
-                            Privilèges existants ({userPrivileges.length})
-                        </h6>
+                        <h6 className="fw-bold mb-3">🛡️ Autorisations existantes ({userPrivileges.length})</h6>
                         
                         {userPrivileges.length === 0 ? (
                             <Alert variant="info" className="text-center">
-                                <AlertCircle size="24" className="mb-2" />
-                                <p className="mb-0">Aucun privilège associé à cet utilisateur</p>
+                                <div style={{ fontSize: '2rem' }}>ℹ️</div>
+                                <p className="mb-0">Aucune autorisation associée à cet utilisateur</p>
                             </Alert>
                         ) : (
                             <Row>
@@ -708,24 +666,24 @@ const UserManager = () => {
                                                 <div className="d-flex justify-content-between align-items-start">
                                                     <div className="flex-grow-1">
                                                         <h6 className="fw-bold mb-2 d-flex align-items-center">
-                                                            <Key size="16" className="me-2 text-warning" />
-                                                            {privilege.designation}
+                                                            {privilege.designation === 'ADMIN' && '👑'}
+                                                            {privilege.designation === 'DDD' && '🌱'}
+                                                            {privilege.designation === 'DEHPE' && '⚡'}
+                                                            {privilege.designation === 'OPERATOR' && '🔧'}
+                                                            <span className="ms-2">{privilege.designation}</span>
                                                         </h6>
-                                                        <div className="small text-muted mb-2">
-                                                            <strong>Entreprises:</strong>
-                                                            {privilege.entreprises?.length > 0 ? (
+                                                        {privilege.designation === 'OPERATOR' && privilege.entreprises?.length > 0 && (
+                                                            <div className="small text-muted mb-2">
+                                                                <strong>Entreprises gérées:</strong>
                                                                 <div className="mt-1">
                                                                     {privilege.entreprises.map((ent, index) => (
                                                                         <Badge key={ent._id || index} bg="light" className="text-dark me-1 mb-1">
-                                                                            <Building size="12" className="me-1" />
-                                                                            {ent.designation}
+                                                                            🏢 {ent.designation}
                                                                         </Badge>
                                                                     ))}
                                                                 </div>
-                                                            ) : (
-                                                                <span className="text-muted"> Aucune entreprise associée</span>
-                                                            )}
-                                                        </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <Button 
                                                         variant="outline-danger" 
@@ -733,7 +691,7 @@ const UserManager = () => {
                                                         className="rounded-3"
                                                         onClick={() => handleDeletePrivilege(privilege._id)}
                                                     >
-                                                        <Trash2 size="14" />
+                                                        🗑️
                                                     </Button>
                                                 </div>
                                             </Card.Body>
@@ -758,4 +716,4 @@ const UserManager = () => {
     );
 };
 
-export default UserManager;
+export default UserManagerSimple;

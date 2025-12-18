@@ -112,8 +112,8 @@ const SourceManager = ({ sources, allGaz, onAdd, onUpdate, onDelete }) => {
                         <Form.Group className="mb-3">
                             <Form.Label>Catégorie réglementaire</Form.Label>
                             <Form.Select name="categorie" defaultValue={currentSource?.categorie}>
-                                <option value="DDD">DDD (Débit-Dose-Durée)</option>
-                                <option value="DEHPE">DEHPE (Émissions Hautes)</option>
+                                <option value="DDD">DDD</option>
+                                <option value="DEHPE">DEHPE</option>
                             </Form.Select>
                         </Form.Group>
                     </Modal.Body>
