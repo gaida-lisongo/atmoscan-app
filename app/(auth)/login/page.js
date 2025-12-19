@@ -8,13 +8,13 @@ import useAuthStore from '@/stores/authStore';
 import useMounted from 'hooks/useMounted';
 
 const Login = () => {
-  console.log('LoginPage: Rendering');
+  // console.log('LoginPage: Rendering');
   const hasMounted = useMounted();
   const router = useRouter();
   const { login, loading, error, isAuthenticated, clearError } = useAuthStore();
   
   useEffect(() => {
-    console.log('LoginPage: Mounted', { isAuthenticated, hasMounted });
+    // console.log('LoginPage: Mounted', { isAuthenticated, hasMounted });
   }, [isAuthenticated, hasMounted]);
 
   const [formData, setFormData] = useState({

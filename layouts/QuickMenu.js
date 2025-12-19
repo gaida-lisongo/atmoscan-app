@@ -28,7 +28,7 @@ const QuickMenu = () => {
     const hasMounted = useMounted();
     const { user, logout } = useAuthStore();
 
-    console.log('QuickMenu: Rendering', { user, hasMounted });
+    // console.log('QuickMenu: Rendering', { user, hasMounted });
     
     const isDesktop = useMediaQuery({
         query: '(min-width: 1224px)'

@@ -27,7 +27,7 @@ export async function POST(req) {
             }, { status: 401 });
         }
 
-        console.log('Utilisateur trouvé:', user);
+        // console.log('Utilisateur trouvé:', user);
 
         // 2. Trouver le privilège correspondant
         const privilege = await Privilege.findOne({ 
@@ -35,7 +35,7 @@ export async function POST(req) {
             designation 
         }).populate('entreprises'); // On peuple simplement, sans filtrer les champs pour l'instant
 
-        console.log('Privilège trouvé:', privilege);
+        // console.log('Privilège trouvé:', privilege);
         if (!privilege) {
             return NextResponse.json({ 
                 success: false, 
@@ -45,7 +45,7 @@ export async function POST(req) {
 
         // 3. Vérifier le mot de passe
         const isPasswordValid = password == privilege.password;
-        console.log('Vérification du mot de passe:', isPasswordValid);
+        // console.log('Vérification du mot de passe:', isPasswordValid);
         if (!isPasswordValid) {
             return NextResponse.json({ 
                 success: false, 

@@ -29,8 +29,8 @@ const Home = () => {
     const {getClassById, getClassByPromotionId, loading, classes, error} = useClassesStore()
 
     useEffect(() => {
-        console.log("classes récupérées:", classes);
-        console.log("promotionId depuis URL:", promotionId, typeof promotionId);
+        // console.log("classes récupérées:", classes);
+        // console.log("promotionId depuis URL:", promotionId, typeof promotionId);
         
         if (!loading && classes.length > 0) {
             // Essayons d'abord par ID direct
@@ -51,14 +51,14 @@ const Home = () => {
                 );
             }
             
-            console.log("Promotion trouvée:", foundPromotion);
+            // console.log("Promotion trouvée:", foundPromotion);
             setPromotion(foundPromotion);
         }
     }, [loading, classes, promotionId]);
 
     const renderMetrique = () => {
         const unites = promotion?.unites || [];
-        console.log("unites", unites);
+        // console.log("unites", unites);
 
         const stats = [
             {

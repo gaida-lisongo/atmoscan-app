@@ -33,7 +33,7 @@ const NavbarVertical = (props) => {
 	}, []);
 
 	useEffect(() => {
-		console.log('sections', sections);
+		// console.log('sections', sections);
 	}, [loading]);
 
 	const renderSections = () => {

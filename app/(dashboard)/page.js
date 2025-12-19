@@ -14,13 +14,13 @@ export const CustomLoader = () => (
 );
 
 const Home = () => {
-    console.log('DashboardPage: Rendering');
+    // console.log('DashboardPage: Rendering');
     const [sources, setSources] = useState([]);
     const [allGaz, setAllGaz] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        console.log('DashboardPage: Mounted');
+        // console.log('DashboardPage: Mounted');
     }, []);
 
     const refreshData = async () => {

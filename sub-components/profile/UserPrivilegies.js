@@ -13,7 +13,7 @@ const UserPrivilegies = ({ user }) => {
             const resp = await req.json();
 
             if (resp.success) {
-                console.log('User Privileges:', resp.data);
+                // console.log('User Privileges:', resp.data);
                 setPrivileges(resp.data);
             } else {
                 console.error('Failed to fetch privileges:', resp.error);

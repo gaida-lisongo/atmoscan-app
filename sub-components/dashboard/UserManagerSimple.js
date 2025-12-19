@@ -84,7 +84,7 @@ const UserManagerSimple = () => {
 
     // Debug des privilèges
     useEffect(() => {
-        console.log('Privilèges chargés:', privileges);
+        // console.log('Privilèges chargés:', privileges);
     }, [privileges]);
 
     // Photo upload handler - Prévisualisation uniquement
@@ -334,7 +334,7 @@ const UserManagerSimple = () => {
             {/* LISTE UTILISATEURS PLEINE LARGEUR */}
             <Row className="g-3 g-md-4">{filteredUsers.map((user) => {
                     const userPrivilegesCount = getUserPrivilegesCount(user._id);
-                    console.log(`User ${user.username} (${user._id}) has ${userPrivilegesCount} privileges`);
+                    // console.log(`User ${user.username} (${user._id}) has ${userPrivilegesCount} privileges`);
                     
                     return (
                     <Col xs={12} lg={6} xl={3} key={user._id} className="mb-3">

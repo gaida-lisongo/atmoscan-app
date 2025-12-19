@@ -23,14 +23,14 @@ const AuthGuard = ({ children }) => {
         const initAuth = async () => {
             // Si on a déjà des données persistées, on fait confiance au store
             if (user && token && isAuthenticated) {
-                console.log('AuthGuard: Using persisted auth state');
+                // console.log('AuthGuard: Using persisted auth state');
                 setIsChecking(false);
                 hasCheckedRef.current = true;
                 return;
             }
 
             // Sinon, on vérifie auprès du serveur
-            console.log('AuthGuard: Checking auth with server...');
+            // console.log('AuthGuard: Checking auth with server...');
             try {
                 await checkAuth();
             } catch (e) {
