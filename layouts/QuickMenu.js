@@ -80,13 +80,13 @@ const QuickMenu = () => {
             action: null,
             className: ''
         },
-        {
-            title: 'Securité',
-            icon: 'fe fe-settings',
-            link: '/user/settings',
-            action: null,
-            className: ''
-        },
+        // {
+        //     title: 'Securité',
+        //     icon: 'fe fe-settings',
+        //     link: '/user/settings',
+        //     action: null,
+        //     className: ''
+        // },
         {
             title: 'Se déconnecter',
             icon: 'fe fe-log-out',

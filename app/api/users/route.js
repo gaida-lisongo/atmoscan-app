@@ -54,31 +54,47 @@ export async function POST(req) {
     await connectDB();
     try {
         const body = await req.json();
-        const { username, matricule, email, password, role, entrepriseId } = body;
+        const { 
+            username, 
+            matricule, 
+            email, 
+            password, 
+            role, 
+            entrepriseId,
+            // Champs profil
+            sexe,
+            nationalite,
+            date_naissance,
+            lieu_naissance,
+            adresse,
+            telephone,
+            photoPath,
+            fonction,
+            departement
+        } = body;
 
-        // 1. Create User
-        const user = await User.create({
+        // 1. Create User avec tous les champs
+        const userData = {
             username,
             matricule,
             email
-        });
-
-        // 2. Hash Password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // 3. Create Privilege
-        const privilegeData = {
-            designation: role,
-            password: hashedPassword,
-            userId: user._id,
-            entreprises: []
         };
+        
+        // Ajouter les champs optionnels s'ils sont fournis
+        if (sexe) userData.sexe = sexe;
+        if (nationalite) userData.nationalite = nationalite;
+        if (date_naissance) userData.date_naissance = date_naissance;
+        if (lieu_naissance) userData.lieu_naissance = lieu_naissance;
+        if (adresse) userData.adresse = adresse;
+        if (telephone) userData.telephone = telephone;
+        if (photoPath) userData.photoPath = photoPath;
+        if (fonction) userData.fonction = fonction;
+        if (departement) userData.departement = departement;
 
-        if (entrepriseId) {
-            privilegeData.entreprises.push(entrepriseId);
-        }
+        const user = await User.create(userData);
 
-        await Privilege.create(privilegeData);
+        // On ne crée PAS de privilège à la création de l'utilisateur
+        // Les privilèges sont gérés séparément via le modal des autorisations
 
         return NextResponse.json({ success: true, data: user }, { status: 201 });
     } catch (error) {

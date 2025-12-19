@@ -68,6 +68,7 @@ export async function POST(req) {
         // 5. Préparer les données utilisateur (sans mot de passe)
         const userData = {
             _id: user._id,
+            photoPath: user.photoPath,
             username: user.username,
             matricule: user.matricule,
             email: user.email,

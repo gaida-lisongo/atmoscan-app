@@ -1,7 +1,8 @@
 'use client'
 import Link from 'next/link';
-import { Col, Row, Card, Button, Modal, Form, InputGroup, Badge, Dropdown, Alert, Container } from 'react-bootstrap';
-import { useEffect, useState } from 'react';
+import { Col, Row, Card, Button, Modal, Form, InputGroup, Badge, Dropdown, Alert, Container, Nav, Tab, Image } from 'react-bootstrap';
+import { useEffect, useState, useRef } from 'react';
+import { User as UserIcon, Camera, Upload } from 'react-feather';
 
 const UserManager = () => {
     const [users, setUsers] = useState([]);
@@ -12,6 +13,15 @@ const UserManager = () => {
     // Modals states
     const [showUserModal, setShowUserModal] = useState(false);
     const [showPrivilegeModal, setShowPrivilegeModal] = useState(false);
+    
+    // Tab state for user modal
+    const [activeTab, setActiveTab] = useState('identite');
+    
+    // Photo upload states
+    const [photoFile, setPhotoFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const fileInputRef = useRef(null);
     
     // Current items
     const [currentUser, setCurrentUser] = useState(null);
@@ -66,6 +76,44 @@ const UserManager = () => {
         fetchPrivileges();
     }, []);
 
+    // Photo upload handler
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPhotoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const uploadPhoto = async () => {
+        if (!photoFile) return null;
+        
+        setUploadingPhoto(true);
+        const formData = new FormData();
+        formData.append('avatar', photoFile);
+        
+        try {
+            const res = await fetch('/api/upload/avatar', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                return data.photoPath;
+            }
+            return null;
+        } catch (error) {
+            console.error("Erreur upload photo:", error);
+            return null;
+        } finally {
+            setUploadingPhoto(false);
+        }
+    };
+
     // User management functions
     const handleSubmitUser = async (e) => {
         e.preventDefault();
@@ -76,6 +124,14 @@ const UserManager = () => {
         // Convert date string to Date object if provided
         if (payload.date_naissance) {
             payload.date_naissance = new Date(payload.date_naissance);
+        }
+
+        // Upload photo if selected
+        if (photoFile) {
+            const photoPath = await uploadPhoto();
+            if (photoPath) {
+                payload.photoPath = photoPath;
+            }
         }
 
         const method = currentUser ? 'PUT' : 'POST';
@@ -107,12 +163,18 @@ const UserManager = () => {
 
     const handleOpenUserModal = (user = null) => {
         setCurrentUser(user);
+        setActiveTab('identite');
+        setPhotoFile(null);
+        setPhotoPreview(user?.photoPath || null);
         setShowUserModal(true);
     };
 
     const handleCloseUserModal = () => {
         setShowUserModal(false);
         setCurrentUser(null);
+        setActiveTab('identite');
+        setPhotoFile(null);
+        setPhotoPreview(null);
     };
 
     // Privilege management functions
@@ -369,14 +431,14 @@ const UserManager = () => {
                             onClick={() => handleOpenUserModal()}
                             className="rounded-3 px-4"
                         >
-                            <Plus size="18" className="me-2" />
+                            {/* <Plus size="18" className="me-2" /> */}
                             Créer un utilisateur
                         </Button>
                     )}
                 </div>
             )}
 
-            {/* MODAL UTILISATEUR */}
+            {/* MODAL UTILISATEUR - 3 Sections avec Tabs */}
             <Modal show={showUserModal} onHide={handleCloseUserModal} centered backdrop="static" size="lg">
                 <Modal.Header closeButton className="border-0 pb-2" style={{ background: 'linear-gradient(135deg, #f0fff4 0%, #e8f8f0 100%)' }}>
                     <Modal.Title className="fw-bold d-flex align-items-center" style={{ fontSize: '1.25rem' }}>
@@ -388,174 +450,310 @@ const UserManager = () => {
                     </Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleSubmitUser}>
-                    <Modal.Body className="py-4">
-                        <Row>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Nom d'utilisateur *
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="username" 
-                                        defaultValue={currentUser?.username} 
-                                        required 
-                                        placeholder="Ex: John Doe"
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Matricule *
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="matricule" 
-                                        defaultValue={currentUser?.matricule} 
-                                        required 
-                                        placeholder="Ex: EMP001"
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Email
-                                    </Form.Label>
-                                    <Form.Control 
-                                        type="email"
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="email" 
-                                        defaultValue={currentUser?.email} 
-                                        placeholder="user@example.com"
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Téléphone
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="telephone" 
-                                        defaultValue={currentUser?.telephone} 
-                                        placeholder="+33 1 23 45 67 89"
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Fonction
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="fonction" 
-                                        defaultValue={currentUser?.fonction} 
-                                        placeholder="Ex: Développeur"
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Département
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="departement" 
-                                        defaultValue={currentUser?.departement} 
-                                        placeholder="Ex: IT"
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row>
-                            <Col md={4} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Sexe
-                                    </Form.Label>
-                                    <Form.Control 
-                                        as="select"
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="sexe" 
-                                        defaultValue={currentUser?.sexe}
+                    <Modal.Body className="py-3">
+                        <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+                            <Nav variant="pills" className="nav-fill mb-4 gap-2">
+                                <Nav.Item>
+                                    <Nav.Link 
+                                        eventKey="identite" 
+                                        className="rounded-3 py-2 px-3 d-flex align-items-center justify-content-center"
+                                        style={{ fontSize: '0.9rem' }}
                                     >
-                                        <option value="">Choisir...</option>
-                                        <option value="M">Masculin</option>
-                                        <option value="F">Féminin</option>
-                                    </Form.Control>
-                                </Form.Group>
-                            </Col>
-                            <Col md={4} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Date de naissance
-                                    </Form.Label>
-                                    <Form.Control 
-                                        type="date"
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="date_naissance" 
-                                        defaultValue={currentUser?.date_naissance ? new Date(currentUser.date_naissance).toISOString().split('T')[0] : ''}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={4} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Nationalité
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="nationalite" 
-                                        defaultValue={currentUser?.nationalite} 
-                                        placeholder="Ex: Française"
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Lieu de naissance
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="lieu_naissance" 
-                                        defaultValue={currentUser?.lieu_naissance} 
-                                        placeholder="Ex: Paris, France"
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Adresse
-                                    </Form.Label>
-                                    <Form.Control 
-                                        as="textarea"
-                                        rows={2}
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="adresse" 
-                                        defaultValue={currentUser?.adresse} 
-                                        placeholder="Adresse complète"
-                                        style={{ resize: 'none' }}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
+                                        <UserIcon size="16" className="me-2" />
+                                        Identité
+                                    </Nav.Link>
+                                </Nav.Item>
+                                <Nav.Item>
+                                    <Nav.Link 
+                                        eventKey="coordonnees" 
+                                        className="rounded-3 py-2 px-3 d-flex align-items-center justify-content-center"
+                                        style={{ fontSize: '0.9rem' }}
+                                    >
+                                        📍 Coordonnées
+                                    </Nav.Link>
+                                </Nav.Item>
+                                <Nav.Item>
+                                    <Nav.Link 
+                                        eventKey="compte" 
+                                        className="rounded-3 py-2 px-3 d-flex align-items-center justify-content-center"
+                                        style={{ fontSize: '0.9rem' }}
+                                    >
+                                        ⚙️ Compte
+                                    </Nav.Link>
+                                </Nav.Item>
+                            </Nav>
+
+                            <Tab.Content>
+                                {/* TAB 1: IDENTITÉ */}
+                                <Tab.Pane eventKey="identite">
+                                    <Row>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Nom complet *
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="username" 
+                                                    defaultValue={currentUser?.username} 
+                                                    required 
+                                                    placeholder="Ex: John Doe"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Sexe
+                                                </Form.Label>
+                                                <Form.Select 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="sexe" 
+                                                    defaultValue={currentUser?.sexe}
+                                                >
+                                                    <option value="">Choisir...</option>
+                                                    <option value="M">Masculin</option>
+                                                    <option value="F">Féminin</option>
+                                                </Form.Select>
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                    
+                                    <Row>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Date de naissance
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    type="date"
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="date_naissance" 
+                                                    defaultValue={currentUser?.date_naissance ? new Date(currentUser.date_naissance).toISOString().split('T')[0] : ''}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Lieu de naissance
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="lieu_naissance" 
+                                                    defaultValue={currentUser?.lieu_naissance} 
+                                                    placeholder="Ex: Kinshasa, RDC"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                    
+                                    <Row>
+                                        <Col md={12} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Nationalité
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="nationalite" 
+                                                    defaultValue={currentUser?.nationalite} 
+                                                    placeholder="Ex: Congolaise"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </Tab.Pane>
+
+                                {/* TAB 2: COORDONNÉES */}
+                                <Tab.Pane eventKey="coordonnees">
+                                    <Row>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Email
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    type="email"
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="email" 
+                                                    defaultValue={currentUser?.email} 
+                                                    placeholder="user@example.com"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Téléphone
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="telephone" 
+                                                    defaultValue={currentUser?.telephone} 
+                                                    placeholder="+243 XXX XXX XXX"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                    
+                                    <Row>
+                                        <Col md={12} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Adresse
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    as="textarea"
+                                                    rows={3}
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="adresse" 
+                                                    defaultValue={currentUser?.adresse} 
+                                                    placeholder="Adresse complète"
+                                                    style={{ resize: 'none' }}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </Tab.Pane>
+
+                                {/* TAB 3: COMPTE */}
+                                <Tab.Pane eventKey="compte">
+                                    {/* Section Photo */}
+                                    <div className="text-center mb-4">
+                                        <Form.Label className="small fw-bold text-uppercase text-muted mb-3 d-block">
+                                            Photo de profil
+                                        </Form.Label>
+                                        <div className="position-relative d-inline-block">
+                                            <div 
+                                                className="rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center mx-auto border"
+                                                style={{ width: '120px', height: '120px' }}
+                                            >
+                                                {photoPreview ? (
+                                                    <Image 
+                                                        src={photoPreview} 
+                                                        alt="Photo" 
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    />
+                                                ) : (
+                                                    <UserIcon size="48" className="text-muted" />
+                                                )}
+                                            </div>
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                className="position-absolute rounded-circle p-2"
+                                                style={{ bottom: '0', right: '0', width: '36px', height: '36px' }}
+                                                onClick={() => fileInputRef.current?.click()}
+                                                type="button"
+                                            >
+                                                <Camera size="16" />
+                                            </Button>
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handlePhotoChange}
+                                                style={{ display: 'none' }}
+                                            />
+                                        </div>
+                                        {photoFile && (
+                                            <div className="mt-2">
+                                                <Badge bg="success" className="px-3 py-2">
+                                                    <Upload size="12" className="me-1" /> {photoFile.name}
+                                                </Badge>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Row>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Matricule *
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="matricule" 
+                                                    defaultValue={currentUser?.matricule} 
+                                                    required 
+                                                    placeholder="Ex: AGT001"
+                                                />
+                                                <Form.Text className="text-muted small">
+                                                    Sera utilisé comme mot de passe par défaut
+                                                </Form.Text>
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Rôle / Privilège
+                                                </Form.Label>
+                                                <Form.Select 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="role" 
+                                                    defaultValue={currentUser?.privileges?.[0]?.designation || 'Agent'}
+                                                >
+                                                    <option value="Admin">Administrateur</option>
+                                                    <option value="DDD">DDD</option>
+                                                    <option value="DEHPE">DEHPE</option>
+                                                    <option value="Agent">Agent</option>
+                                                </Form.Select>
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                    
+                                    <Row>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Fonction
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="fonction" 
+                                                    defaultValue={currentUser?.fonction} 
+                                                    placeholder="Ex: Inspecteur"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={6} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Département
+                                                </Form.Label>
+                                                <Form.Control 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="departement" 
+                                                    defaultValue={currentUser?.departement} 
+                                                    placeholder="Ex: Environnement"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+
+                                    <Row>
+                                        <Col md={12} className="mb-3">
+                                            <Form.Group>
+                                                <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
+                                                    Entreprise assignée
+                                                </Form.Label>
+                                                <Form.Select 
+                                                    className="border rounded-3 py-2 px-3" 
+                                                    name="entrepriseId" 
+                                                    defaultValue={currentUser?.privileges?.[0]?.entreprises?.[0] || ''}
+                                                >
+                                                    <option value="">Aucune entreprise</option>
+                                                    {enterprises.map(ent => (
+                                                        <option key={ent._id} value={ent._id}>{ent.designation}</option>
+                                                    ))}
+                                                </Form.Select>
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </Tab.Pane>
+                            </Tab.Content>
+                        </Tab.Container>
                     </Modal.Body>
                     <Modal.Footer className="border-0 pt-0 pb-4">
                         <div className="d-flex gap-3 w-100 flex-column flex-md-row">
@@ -563,12 +761,13 @@ const UserManager = () => {
                                 variant="light" 
                                 onClick={handleCloseUserModal}
                                 className="rounded-3 px-4 py-2 flex-grow-1 flex-md-grow-0"
+                                type="button"
                             >
                                 Annuler
                             </Button>
                             <Button 
                                 type="submit" 
-                                disabled={loading}
+                                disabled={loading || uploadingPhoto}
                                 className="rounded-3 px-4 py-2 flex-grow-1 flex-md-grow-0"
                                 style={{ 
                                     background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
@@ -576,12 +775,12 @@ const UserManager = () => {
                                     fontWeight: '600'
                                 }}
                             >
-                                {loading ? (
+                                {(loading || uploadingPhoto) ? (
                                     <>
                                         <div className="spinner-border spinner-border-sm me-2" role="status">
                                             <span className="visually-hidden">Loading...</span>
                                         </div>
-                                        Enregistrement...
+                                        {uploadingPhoto ? 'Upload photo...' : 'Enregistrement...'}
                                     </>
                                 ) : (
                                     currentUser ? 'Mettre à jour' : 'Créer l\'utilisateur'
@@ -754,7 +953,7 @@ const UserManager = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
-        </div>
+        </Container>
     );
 };
 
