@@ -161,7 +161,7 @@ const Home = () => {
                     </Col>
                 </Row>
                 <Row className="my-6">
-                    <Col xl={6} lg={6} md={12} xs={12}>                    
+                    <Col xl={6} lg={6} md={12} xs={12} className="mb-6 mb-xl-0">                    
                         <SourceManager 
                             sources={sources?.filter(s => s.categorie === (user?.currentPrivilege?.designation || 'DDD'))} 
                             allGaz={allGaz}

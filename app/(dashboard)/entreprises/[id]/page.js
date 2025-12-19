@@ -3,17 +3,11 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 // import node module libraries
 import { Col, Row, Container } from 'react-bootstrap';
-
-// import widget as custom components
-import { PageHeading } from 'widgets'
+import useAuthStore from '@/stores/authStore';
 
 // import sub components
 import {
-  TasksPerformance,
-  ActivityFeed,
-  MyTeam,
   EntrepriseDetail,
-  PollutionsDetail,
   GesChart
 } from 'sub-components'
 import CustomLoader from 'components/CustomLoader';
@@ -25,6 +19,7 @@ const Entreprise = () => {
   const [entreprise, setEntreprise] = useState(null);
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
 
   const refreshData = async (id) => {
     try {
@@ -54,21 +49,26 @@ const Entreprise = () => {
       <div className="py-6">
 
         <Row className="my-6">
-            <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
+          {
+            user?.currentPrivilege?.designation === 'DDD' ? (
+              <Col xl={12} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
 
-                {/* Tasks Performance  */}
-                {sources?.length && <GesChart sources={sources?.filter(s => s?.categorie == 'DDD')} entrepriseId={entreprise?._id} />}
+                  {/* Tasks Performance  */}
+                  {sources?.length && <GesChart sources={sources?.filter(s => s?.categorie == 'DDD')} entrepriseId={entreprise?._id} />}
 
-            </Col>
-            {/* card  */}
-            <Col xl={8} lg={12} md={12} xs={12}>
+              </Col>
 
-
-                {/* Tasks Performance  */}
-                {sources?.length && <GesChart sources={sources?.filter(s => s?.categorie == 'DEHPE')} entrepriseId={entreprise?._id} />}
+            ) : (
+              <Col xl={12} lg={12} md={12} xs={12}>
 
 
-            </Col>
+                  {/* Tasks Performance  */}
+                  {sources?.length && <GesChart sources={sources?.filter(s => s?.categorie == 'DEHPE')} entrepriseId={entreprise?._id} />}
+
+
+              </Col>
+            )
+          }
         </Row>
    
       </div>
