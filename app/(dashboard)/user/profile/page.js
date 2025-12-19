@@ -17,6 +17,8 @@ import {
 import useAuthStore from '@/stores/authStore';
 import { User } from 'react-feather';
 
+export const dynamic = 'force-dynamic';
+
 const Profile = () => {
   const { user } = useAuthStore();
   return (

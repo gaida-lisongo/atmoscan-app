@@ -3,6 +3,9 @@ import jwt from "jsonwebtoken";
 import connectDB from "@/lib/db";
 import { User, Privilege } from "@/lib/models/User";
 
+// Force dynamic pour éviter les erreurs de prerendering
+export const dynamic = 'force-dynamic';
+
 export async function GET(req) {
     try {
         const authHeader = req.headers.get('authorization');

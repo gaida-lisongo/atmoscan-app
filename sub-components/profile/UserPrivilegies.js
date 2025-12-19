@@ -1,5 +1,5 @@
 "use client";
-import { CustomLoader } from '@/app/(dashboard)/page';
+import CustomLoader from 'components/CustomLoader';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Card, Image } from 'react-bootstrap';

@@ -16,7 +16,7 @@ import {
   PollutionsDetail,
   GesChart
 } from 'sub-components'
-import { CustomLoader } from '../../page';
+import CustomLoader from 'components/CustomLoader';
 
 const Entreprise = () => {
   const params = useParams(); // Récupère l'ID vite
