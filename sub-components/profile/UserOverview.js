@@ -19,8 +19,8 @@ const UserOverview = ({ user }) => {
                     </p>
                     <Row>
                         <Col xs={12} className="mb-5">
-                            <h6 className="text-uppercase fs-5 ls-2">LIEU DE NAISSANCE</h6>
-                            <p className="mb-0">{user ? user?.lieu_naissance : "Non Renseigné"}</p>
+                            <h6 className="text-uppercase fs-5 ls-2">SEXE</h6>
+                            <p className="mb-0">{user ? (user?.sexe == 'M' ? "Masculin" : "Féminin") : "Non Renseigné"}</p>
                         </Col>
                         <Col xs={6} className="mb-5">
                             <h6 className="text-uppercase fs-5 ls-2">TELEPHONE </h6>
@@ -28,7 +28,7 @@ const UserOverview = ({ user }) => {
                         </Col>
                         <Col xs={6} className="mb-5">
                             <h6 className="text-uppercase fs-5 ls-2">DATE DE NAISSANCE </h6>
-                            <p className="mb-0">{user ? parseDate(user?.date_naissance) : "Non Renseignée"}</p>
+                            <p className="mb-0">{user ? user?.lieu_naissance : "Non Renseigné"}, le {user ? parseDate(user?.date_naissance) : "Non Renseignée"}</p>
                         </Col>
                         <Col xs={6}>
                             <h6 className="text-uppercase fs-5 ls-2">EMAIL </h6>

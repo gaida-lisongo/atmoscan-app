@@ -1,11 +1,16 @@
 // import node module libraries
 import Link from 'next/link';
-import { Col, Row, Image } from 'react-bootstrap';
+import { useState } from 'react';
+import { Col, Row, Image, Button } from 'react-bootstrap';
 import useAuthStore from '@/stores/authStore';
+import EditProfileModal from 'components/EditProfileModal';
 
 const UserBanner = () => {
   const { user, updateProfile, loading, error } = useAuthStore();
+  const [showEditModal, setShowEditModal] = useState(false);
+
   return (
+    <>
     <Row className="align-items-center">
       <Col xl={12} lg={12} md={12} xs={12}>
         {/* Bg */}
@@ -31,7 +36,13 @@ const UserBanner = () => {
               </div>
             </div>
             <div>
-              <Link href="#" className="btn btn-outline-primary d-none d-md-block">Modifier mon profil</Link>
+              <Button 
+                variant="outline-primary" 
+                className="d-none d-md-block"
+                onClick={() => setShowEditModal(true)}
+              >
+                Modifier mon profil
+              </Button>
             </div>
           </div>
           {/* nav */}
@@ -60,6 +71,13 @@ const UserBanner = () => {
         </div>
       </Col>
     </Row>
+
+    {/* Modal de modification du profil */}
+    <EditProfileModal 
+      show={showEditModal} 
+      onHide={() => setShowEditModal(false)} 
+    />
+    </>
   )
 }
 

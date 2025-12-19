@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 
 export function middleware(request) {
   const token = request.cookies.get('auth-token')?.value;
-  console.log('Middleware - Auth Token:', token);
+//   console.log('Middleware - Auth Token:', token);
   const { pathname } = request.nextUrl;
-  console.log('Middleware - Pathname:', pathname);
+//   console.log('Middleware - Pathname:', pathname);
 
   // Pages publiques qui ne nécessitent pas d'authentification
   const publicPaths = ['/login'];

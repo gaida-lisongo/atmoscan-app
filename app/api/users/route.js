@@ -93,20 +93,50 @@ export async function PUT(req) {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
         const body = await req.json();
-        const { username, matricule, email, password, role, entrepriseId } = body;
+        
+        // Extraire tous les champs possibles
+        const { 
+            username, 
+            matricule, 
+            email, 
+            password, 
+            role, 
+            entrepriseId,
+            // Nouveaux champs pour le profil
+            sexe,
+            nationalite,
+            date_naissance,
+            lieu_naissance,
+            adresse,
+            telephone,
+            photoPath,
+            fonction,
+            departement
+        } = body;
+
+        // Construire l'objet de mise à jour dynamiquement (seulement les champs fournis)
+        const updateData = {};
+        if (username !== undefined) updateData.username = username;
+        if (matricule !== undefined) updateData.matricule = matricule;
+        if (email !== undefined) updateData.email = email;
+        if (sexe !== undefined) updateData.sexe = sexe;
+        if (nationalite !== undefined) updateData.nationalite = nationalite;
+        if (date_naissance !== undefined) updateData.date_naissance = date_naissance;
+        if (lieu_naissance !== undefined) updateData.lieu_naissance = lieu_naissance;
+        if (adresse !== undefined) updateData.adresse = adresse;
+        if (telephone !== undefined) updateData.telephone = telephone;
+        if (photoPath !== undefined) updateData.photoPath = photoPath;
+        if (fonction !== undefined) updateData.fonction = fonction;
+        if (departement !== undefined) updateData.departement = departement;
 
         // 1. Update User
-        const user = await User.findByIdAndUpdate(id, {
-            username,
-            matricule,
-            email
-        }, { new: true });
+        const user = await User.findByIdAndUpdate(id, updateData, { new: true });
 
         if (!user) {
             return NextResponse.json({ success: false, message: "Utilisateur non trouvé" }, { status: 404 });
         }
 
-        // 2. Update Privilege
+        // 2. Update Privilege (si role ou password fournis)
         let privilege = await Privilege.findOne({ userId: id });
 
         if (privilege) {
