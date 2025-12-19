@@ -2,12 +2,14 @@
 import React, { useState } from "react";
 import { Card, Table, Button, Modal, Form, Badge, ListGroup, Row, Col, Nav } from 'react-bootstrap';
 import { Trash, Eye, Plus, Folder } from 'react-feather';
+import useAuthStore from '@/stores/authStore';
 
 const SourceManager = ({ sources, allGaz, onAdd, onUpdate, onDelete }) => {
     const [filter, setFilter] = useState('ALL');
     const [showSourceModal, setShowSourceModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [currentSource, setCurrentSource] = useState(null);
+    const { user } = useAuthStore();
 
     // Fonction pour récupérer l'objet Gaz complet à partir d'un ID ou d'un objet partiel
     // Cela garantit l'affichage immédiat du nom sans attendre le refresh backend
@@ -45,15 +47,13 @@ const SourceManager = ({ sources, allGaz, onAdd, onUpdate, onDelete }) => {
                 </div>
                 
                 <Nav variant="tabs" activeKey={filter} onSelect={(k) => setFilter(k)}>
-                    <Nav.Item>
-                        <Nav.Link eventKey="ALL">Toutes</Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                        <Nav.Link eventKey="DDD">Sources DDD</Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                        <Nav.Link eventKey="DEHPE">Sources DEHPE</Nav.Link>
-                    </Nav.Item>
+                {
+                    user?.currentPrivilege?.designation ? (
+                        <Nav.Item>
+                            <Nav.Link eventKey={user.currentPrivilege.designation}>{`Sources ${user.currentPrivilege.designation}`}</Nav.Link>
+                        </Nav.Item>
+                    ) : null
+                }
                 </Nav>
             </Card.Header>
 
@@ -111,7 +111,7 @@ const SourceManager = ({ sources, allGaz, onAdd, onUpdate, onDelete }) => {
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Catégorie réglementaire</Form.Label>
-                            <Form.Select name="categorie" defaultValue={currentSource?.categorie}>
+                            <Form.Select name="categorie" disabled defaultValue={currentSource?.categorie}>
                                 <option value="DDD">DDD</option>
                                 <option value="DEHPE">DEHPE</option>
                             </Form.Select>

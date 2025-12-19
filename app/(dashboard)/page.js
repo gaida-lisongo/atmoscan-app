@@ -6,15 +6,18 @@ import { Activity, Wind } from 'react-bootstrap-icons'; // Nouveaux icons
 import { EntrepriseManager, GazManager, SourcesChart, SourceManager } from "sub-components";
 import AdminQuickAccess from 'components/AdminQuickAccess';
 import CustomLoader from 'components/CustomLoader';
+import useAuthStore from '@/stores/authStore';
 
 const Home = () => {
     // console.log('DashboardPage: Rendering');
     const [sources, setSources] = useState([]);
     const [allGaz, setAllGaz] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);   
+    const { user } = useAuthStore();
 
     useEffect(() => {
         // console.log('DashboardPage: Mounted');
+        // console.log('Utilisateur connecté:', user);
     }, []);
 
     const refreshData = async () => {
@@ -32,10 +35,15 @@ const Home = () => {
 
     // --- Calcul dynamique des Metrics (useMemo pour la performance) ---
     const metrics = useMemo(() => {
+
+        if(!user) return [];
+
         const stats = {
             DDD: { sources: 0, gaz: 0 },
             DEHPE: { sources: 0, gaz: 0 }
         };
+
+
 
         sources.forEach(s => {
             if (stats[s.categorie]) {
@@ -44,22 +52,43 @@ const Home = () => {
             }
         });
 
-        return [
-            {
-                id: 1,
-                title: "Direction Développement Durable (DDD)",
-                value: stats.DDD.sources,
-                icon: <Activity size={18} className="text-info" />,
-                statInfo: `<span className="text-info me-2 fw-bold">${stats.DDD.gaz}</span> Gaz sous surveillance`
-            },
-            {
-                id: 2,
-                title: "Protection Environnement (DEHPE)",
-                value: stats.DEHPE.sources,
-                icon: <Wind size={18} className="text-success" />,
-                statInfo: `<span className="text-success me-2 fw-bold">${stats.DEHPE.gaz}</span> Gaz sous surveillance`
-            }
-        ];
+        if (user?.currentPrivilege?.designation == 'DDD') {
+            return [
+                {
+                    id: 1,
+                    title: "Sources sous surveillance",
+                    value: stats.DDD.sources ,
+                    icon: <Activity size={18} className="text-info" />,
+                    statInfo: `<span className="text-info me-2 fw-bold">${((stats.DDD.sources + stats.DEHPE.sources) ? (stats?.DDD?.sources * 100/(stats.DDD.sources + stats.DEHPE.sources)).toFixed(2) : 0)} %</span>`
+                },
+                {
+                    id: 2,
+                    title: "Emissions sous surveillance",
+                    value: stats.DDD?.gaz || 0,
+                    icon: <Wind size={18} className="text-success" />,
+                    statInfo: `<span className="text-success me-2 fw-bold">${((stats.DDD.gaz + stats.DEHPE.gaz) ? (stats?.DDD?.gaz * 100/(stats.DDD.gaz + stats.DEHPE.gaz)).toFixed(2) : 0)} %</span>`
+                }
+            ]
+        } else {
+
+            return [
+                {
+                    id: 1,
+                    title: "Sources sous surveillance",
+                    value: stats.DEHPE.sources ,
+                    icon: <Activity size={18} className="text-info" />,
+                    statInfo: `<span className="text-info me-2 fw-bold">${((stats.DDD.sources + stats.DEHPE.sources) ? (stats?.DEHPE?.sources * 100/(stats.DDD.sources + stats.DEHPE.sources)).toFixed(2) : 0)} %</span>`
+                },
+                {
+                    id: 2,
+                    title: "Emissions sous surveillance",
+                    value: stats.DEHPE?.gaz || 0,
+                    icon: <Wind size={18} className="text-success" />,
+                    statInfo: `<span className="text-success me-2 fw-bold">${((stats.DDD.gaz + stats.DEHPE.gaz) ? (stats?.DEHPE?.gaz * 100/(stats.DDD.gaz + stats.DEHPE.gaz)).toFixed(2) : 0)} %</span>`
+                }
+            ];
+
+        }
     }, [sources]);
 
     // --- Méthodes CRUD ---
@@ -124,7 +153,7 @@ const Home = () => {
                             ))}
                         </Row>
                         <Col xl={12} lg={12} md={12} xs={12} className="mt-6">
-                            <SourcesChart sources={sources} />
+                            <SourcesChart sources={sources?.filter(s => s.categorie === (user?.currentPrivilege?.designation || 'DDD'))} />
                         </Col>
                     </Col>
                     <Col xl={6} lg={6} md={12} xs={12} className="mt-6">
@@ -134,7 +163,7 @@ const Home = () => {
                 <Row className="my-6">
                     <Col xl={6} lg={6} md={12} xs={12}>                    
                         <SourceManager 
-                            sources={sources} 
+                            sources={sources?.filter(s => s.categorie === (user?.currentPrivilege?.designation || 'DDD'))} 
                             allGaz={allGaz}
                             onAdd={handleAddSource}
                             onUpdate={handleUpdateSource}
