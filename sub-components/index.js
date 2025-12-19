@@ -16,9 +16,12 @@ import GazManager from 'sub-components/dashboard/GazManager';
 
 // sub components for /pages/profile
 import AboutMe from 'sub-components/profile/AboutMe';
+import UserOverview from 'sub-components/profile/UserOverview';
+import UserPrivilegies from 'sub-components/profile/UserPrivilegies';
 import ActivityFeed from 'sub-components/profile/ActivityFeed';
 import MyTeam from 'sub-components/profile/MyTeam';
 import ProfileHeader from 'sub-components/profile/ProfileHeader';
+import UserBanner from 'sub-components/profile/UserBanner';
 import EntrepriseDetail from 'sub-components/profile/EntrepriseDetail';
 import ProjectsContributions from 'sub-components/profile/ProjectsContributions';
 import PollutionsDetail from 'sub-components/profile/PollutionsDetail';
@@ -48,9 +51,12 @@ export {
    SourcesChart,
    
    AboutMe,
+   UserOverview,
    ActivityFeed,
    MyTeam,
+   UserPrivilegies,
    ProfileHeader,
+   UserBanner,
    EntrepriseDetail,
    ProjectsContributions,
    PollutionsDetail,

@@ -9,6 +9,7 @@ import {
     Dropdown,
     ListGroup,
 } from 'react-bootstrap';
+import { useRouter } from 'next/navigation';
 
 // simple bar scrolling used for notification item scrolling
 import SimpleBar from 'simplebar-react';
@@ -19,39 +20,81 @@ import NotificationList from 'data/Notification';
 
 // import hooks
 import useMounted from 'hooks/useMounted';
+import useAuthStore from '@/stores/authStore';
+import { User } from 'react-feather';
 
 const QuickMenu = () => {
-
+    const router = useRouter();
     const hasMounted = useMounted();
+    const { user, logout } = useAuthStore();
+
+    console.log('QuickMenu: Rendering', { user, hasMounted });
     
     const isDesktop = useMediaQuery({
         query: '(min-width: 1224px)'
     })
 
-    const userMenu = (metier) => [
-        ...metier,
+    const handleLogout = async () => {
+        await logout();
+        router.push('/login');
+    };
+
+    const getRoleMenuItem = () => {
+        const role = user?.currentPrivilege?.designation;
+        
+        if (role === 'ADMIN') {
+            return {
+                title: 'Administration',
+                icon: 'fe fe-user-check',
+                link: '/user',
+                action: null,
+                className: 'text-primary'
+            };
+        } else if (role === 'DDD' || role === 'DEHPE') {
+            return {
+                title: 'Capteurs',
+                icon: 'fe fe-activity',
+                link: '/capteurs',
+                action: null,
+                className: 'text-primary'
+            };
+        }
+        
+        // Pour OPERATOR ou autre, on ne retourne rien ou un objet vide
+        return null;
+    };
+
+    const roleItem = getRoleMenuItem();
+    const menuItems = [];
+    
+    if (roleItem) {
+        menuItems.push(roleItem);
+    }
+
+    const userMenu = [
+        ...menuItems, // Dynamic role item inserted here or at the top
         {
-            title: 'Profile',
+            title: 'Modifier Profile',
             icon: 'fe fe-user',
             link: '/user/profile',
-            action : null,
+            action: null,
             className: ''
         },
         {
             title: 'Securité',
             icon: 'fe fe-settings',
             link: '/user/settings',
-            action : null,
+            action: null,
             className: ''
         },
         {
-            title: 'Se deconnecté',
+            title: 'Se déconnecter',
             icon: 'fe fe-log-out',
             link: '#',
-            action : () => { alert('Déconnexion en cours...'); },
+            action : handleLogout,
             className: 'text-danger'
         }
-    ]
+    ];
 
     const Notifications = () => {
         return (
@@ -117,7 +160,13 @@ const QuickMenu = () => {
                     className="rounded-circle"
                     id="dropdownUser">
                     <div className="avatar avatar-md avatar-indicators avatar-online">
-                        <Image alt="avatar" src='/images/avatar/avatar-1.jpg' className="rounded-circle" />
+                        {user?.photoPath ? (
+                            <Image alt="avatar" src={user.photoPath} className="rounded-circle" />
+                        ) : (
+                            <div className="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style={{ width: '100%', height: '100%' }}>
+                                {user?.prenom?.[0]}{user?.nom?.[0]}
+                            </div>
+                        )}
                     </div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu
@@ -128,19 +177,13 @@ const QuickMenu = () => {
                     >
                     <Dropdown.Item as="div" className="px-4 pb-0 pt-2" bsPrefix=' '>
                             <div className="lh-1 ">
-                                <h5 className="mb-1"> John E. Grainger</h5>
-                                <Link href="#" className="text-inherit fs-6">View my profile</Link>
+                                <h5 className="mb-1"> {user ? `${user.username}` : 'Utilisateur'}</h5>
+                                <Link href="/profile" className="text-inherit fs-6">{user?.matricule}</Link>
                             </div>
                             <div className=" dropdown-divider mt-3 mb-2"></div>
                     </Dropdown.Item>
                     {
-                        userMenu([{
-                            title: 'Administration',
-                            icon: 'fe fe-user-check',
-                            link: '/user/',
-                            action : null,
-                            className: 'text-primary'
-                        }]).map((item, index) => (
+                        userMenu.map((item, index) => (
                             <Dropdown.Item 
                                 eventKey={index + 2} 
                                 key={index}
@@ -197,7 +240,13 @@ const QuickMenu = () => {
                     className="rounded-circle"
                     id="dropdownUser">
                     <div className="avatar avatar-md avatar-indicators avatar-online">
-                        <Image alt="avatar" src='/images/avatar/avatar-1.jpg' className="rounded-circle" />
+                        {user?.photoPath ? (
+                            <Image alt="avatar" src={user.photoPath} className="rounded-circle" />
+                        ) : (
+                            <div className="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style={{ width: '100%', height: '100%' }}>
+                                {user?.prenom?.[0]}{user?.nom?.[0]}
+                            </div>
+                        )}
                     </div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu
@@ -207,19 +256,13 @@ const QuickMenu = () => {
                     >
                     <Dropdown.Item as="div" className="px-4 pb-0 pt-2" bsPrefix=' '>
                             <div className="lh-1 ">
-                                <h5 className="mb-1"> John E. Grainger</h5>
-                                <Link href="#" className="text-inherit fs-6">View my profile</Link>
+                                <h5 className="mb-1"> {user ? `${user?.username}` : 'Utilisateur'}</h5>
+                                <Link href="/profile" className="text-inherit fs-6">{user?.matricule}</Link>
                             </div>
                             <div className=" dropdown-divider mt-3 mb-2"></div>
                     </Dropdown.Item>
                     {
-                        userMenu([{
-                            title: 'Administration',
-                            icon: 'fe fe-user-check',
-                            link: '/user/',
-                            action : null,
-                            className: 'text-primary'
-                        }]).map((item, index) => (
+                        userMenu.map((item, index) => (
                             <Dropdown.Item 
                                 eventKey={index + 2} 
                                 key={index}

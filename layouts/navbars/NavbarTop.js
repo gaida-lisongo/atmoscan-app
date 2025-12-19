@@ -4,13 +4,18 @@ import Link from 'next/link';
 import {
 	Nav,
 	Navbar,
-	Form
+	Form,
+	Dropdown,
+	Button
 } from 'react-bootstrap';
+import { useRouter } from 'next/navigation';
 
 // import sub components
 import QuickMenu from 'layouts/QuickMenu';
 
 const NavbarTop = (props) => {
+	const router = useRouter();
+
 	return (
 		<Navbar expanded="lg" className="navbar-classic navbar navbar-expand-lg">
 			<div className='d-flex justify-content-between w-100'>
@@ -33,7 +38,7 @@ const NavbarTop = (props) => {
 					</div>
 				</div>
 				{/* Quick Menu */}
-				<Nav className="navbar-right-wrap ms-2 d-flex nav-top-wrap">
+				<Nav className="navbar-right-wrap ms-2 d-flex nav-top-wrap align-items-center">
 					<QuickMenu />
 				</Nav>
 			</div>

@@ -10,6 +10,7 @@ import NavbarVertical from '/layouts/navbars/NavbarVertical';
 import NavbarTop from '/layouts/navbars/NavbarTop';
 
 export default function DashboardLayout({ children }) {
+	console.log('DashboardLayout: Rendering');
 	const [showMenu, setShowMenu] = useState(true);
 	const ToggleMenu = () => {
 		return setShowMenu(!showMenu);

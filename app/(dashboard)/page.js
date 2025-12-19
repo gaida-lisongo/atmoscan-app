@@ -4,6 +4,7 @@ import { Container, Col, Row, Spinner } from 'react-bootstrap';
 import { StatRightTopIcon } from "widgets";
 import { Activity, Wind } from 'react-bootstrap-icons'; // Nouveaux icons
 import { EntrepriseManager, GazManager, SourcesChart, SourceManager } from "sub-components";
+import AdminQuickAccess from 'components/AdminQuickAccess';
 
 export const CustomLoader = () => (
     <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: '100vh', backgroundColor: '#f5f7fb' }}>
@@ -13,9 +14,14 @@ export const CustomLoader = () => (
 );
 
 const Home = () => {
+    console.log('DashboardPage: Rendering');
     const [sources, setSources] = useState([]);
     const [allGaz, setAllGaz] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        console.log('DashboardPage: Mounted');
+    }, []);
 
     const refreshData = async () => {
         try {
@@ -108,6 +114,9 @@ const Home = () => {
                 }}
             ></div>
             <Container fluid className="mt-n22 px-6">
+                {/* Accès rapide administrateur */}
+                <AdminQuickAccess />
+                
                 <Row>
                     <Col xl={6} lg={6} md={12} xs={12}>
                         <Row>
