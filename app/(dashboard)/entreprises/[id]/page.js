@@ -61,7 +61,6 @@ const Entreprise = () => {
             ) : (
               <Col xl={12} lg={12} md={12} xs={12}>
 
-
                   {/* Tasks Performance  */}
                   {sources?.length && <GesChart sources={sources?.filter(s => s?.categorie == 'DEHPE')} entrepriseId={entreprise?._id} />}
 
