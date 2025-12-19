@@ -23,7 +23,7 @@ const UserPrivilegies = ({ user }) => {
         }
     }
     
-    console.log('UserPrivilegies: Rendering for user', user._id);
+    // console.log('UserPrivilegies: Rendering for user', user._id);
     
     useEffect(() => {
         fetchPrivileges();

@@ -19,11 +19,9 @@ const Login = () => {
 
   const [formData, setFormData] = useState({
     matricule: '',
-    designation: '',
+    designation: 'ADMIN',
     password: ''
   });
-
-  const authorizationTypes = ['ADMIN', 'DDD', 'DEHPE', 'OPERATOR'];
 
   // Redirection si déjà connecté
   useEffect(() => {
@@ -45,7 +43,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.matricule || !formData.designation || !formData.password) {
+    if (!formData.matricule || !formData.password) {
       return;
     }
 
@@ -109,30 +107,6 @@ const Login = () => {
                     className="py-3 px-4 border-0 bg-light rounded-3"
                     style={{ fontSize: '1rem' }}
                   />
-                </Form.Group>
-
-                {/* Type d'autorisation */}
-                <Form.Group className="mb-4" controlId="designation">
-                  <Form.Label className="fw-semibold text-dark">Type d'autorisation</Form.Label>
-                  <Form.Control 
-                    as="select"
-                    name="designation"
-                    value={formData.designation}
-                    onChange={handleInputChange}
-                    required
-                    className="py-3 px-4 border-0 bg-light rounded-3"
-                    style={{ fontSize: '1rem' }}
-                  >
-                    <option value="">Sélectionnez votre autorisation</option>
-                    {authorizationTypes.map(auth => (
-                      <option key={auth} value={auth}>
-                        {auth === 'ADMIN' && '👑 ADMIN - Administrateur'}
-                        {auth === 'DDD' && '🌱 DDD - Direction Développement Durable'}
-                        {auth === 'DEHPE' && '⚡ DEHPE - Direction Énergie & Hygiène'}
-                        {auth === 'OPERATOR' && '🔧 OPERATOR - Opérateur'}
-                      </option>
-                    ))}
-                  </Form.Control>
                 </Form.Group>
 
                 {/* Password */}
