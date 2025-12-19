@@ -122,6 +122,41 @@ const QuickMenu = () => {
     const QuickMenuDesktop = () => {
         return (
         <ListGroup as="ul" bsPrefix='navbar-nav' className="navbar-right-wrap ms-auto d-flex nav-top-wrap">
+            {/* Notifications Dropdown */}
+            <Dropdown as="li" className="ms-2">
+                <Dropdown.Toggle
+                    as="a"
+                    bsPrefix=' '
+                    id="dropdownNotification"
+                    className="text-dark icon-notifications me-lg-1 btn btn-light btn-icon rounded-circle indicator indicator-primary"
+                >
+                    <i className="fe fe-bell"></i>
+                </Dropdown.Toggle>
+                <Dropdown.Menu
+                    className="dashboard-dropdown notifications-dropdown dropdown-menu-lg dropdown-menu-end mt-4 py-0"
+                    aria-labelledby="dropdownNotification"
+                    align="end"
+                >
+                    <Dropdown.Item className="mt-3" bsPrefix=' ' as="div">
+                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-end">
+                            <span className="h4 mb-0">Notifications</span>
+                            <Link href="/" className="text-muted">
+                                <span className="align-middle">
+                                    <i className="fe fe-settings me-1"></i>
+                                </span>
+                            </Link>
+                        </div>
+                        <Notifications />
+                        <div className="border-top px-3 pt-3 pb-3">
+                            <Link href="/dashboard/notification-history" className="text-link fw-semi-bold">
+                                Voir toutes les notifications
+                            </Link>
+                        </div>
+                    </Dropdown.Item>
+                </Dropdown.Menu>
+            </Dropdown>
+            
+            {/* User Dropdown */}
             <Dropdown as="li" className="ms-2">
                 <Dropdown.Toggle
                     as="a"
@@ -172,6 +207,41 @@ const QuickMenu = () => {
     const QuickMenuMobile = () => {
         return (
         <ListGroup as="ul" bsPrefix='navbar-nav' className="navbar-right-wrap ms-auto d-flex nav-top-wrap">
+            {/* Notifications Dropdown Mobile */}
+            <Dropdown as="li" className="ms-2">
+                <Dropdown.Toggle
+                    as="a"
+                    bsPrefix=' '
+                    id="dropdownNotificationMobile"
+                    className="text-dark icon-notifications me-lg-1 btn btn-light btn-icon rounded-circle indicator indicator-primary"
+                >
+                    <i className="fe fe-bell"></i>
+                </Dropdown.Toggle>
+                <Dropdown.Menu
+                    className="dashboard-dropdown notifications-dropdown dropdown-menu-lg dropdown-menu-end mt-4 py-0"
+                    aria-labelledby="dropdownNotificationMobile"
+                    align="end"
+                >
+                    <Dropdown.Item className="mt-3" bsPrefix=' ' as="div">
+                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-end">
+                            <span className="h4 mb-0">Notifications</span>
+                            <Link href="/" className="text-muted">
+                                <span className="align-middle">
+                                    <i className="fe fe-settings me-1"></i>
+                                </span>
+                            </Link>
+                        </div>
+                        <Notifications />
+                        <div className="border-top px-3 pt-3 pb-3">
+                            <Link href="/dashboard/notification-history" className="text-link fw-semi-bold">
+                                Voir toutes les notifications
+                            </Link>
+                        </div>
+                    </Dropdown.Item>
+                </Dropdown.Menu>
+            </Dropdown>
+            
+            {/* User Dropdown Mobile */}
             <Dropdown as="li" className="ms-2">
                 <Dropdown.Toggle
                     as="a"
