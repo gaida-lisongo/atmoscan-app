@@ -13,6 +13,9 @@ import {
     Table,
     Button,
     Accordion,
+    Form,
+    Pagination,
+    InputGroup,
 } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
 
@@ -31,8 +34,17 @@ const QuickMenu = () => {
     const { user, logout } = useAuthStore();
     const [notifications, setNotifications] = useState([]);
     const [showNotificationModal, setShowNotificationModal] = useState(false);
+    const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [gazList, setGazList] = useState([]);
+    
+    // Filtres et pagination pour toutes les notifications
+    const [filterReadStatus, setFilterReadStatus] = useState('all'); // 'all', 'read', 'unread'
+    const [filterYear, setFilterYear] = useState('');
+    const [filterMonth, setFilterMonth] = useState('');
+    const [filterDay, setFilterDay] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 15;
 
     // Fetch gaz pour avoir les noms
     const fetchGaz = async () => {
@@ -258,7 +270,7 @@ const QuickMenu = () => {
                             <p className="mb-0">Aucune notification</p>
                         </ListGroup.Item>
                     ) : (
-                        notifications.slice(0, 5).map((item, index) => (
+                        notifications.slice(0, 12).map((item, index) => (
                             <ListGroup.Item 
                                 key={item._id} 
                                 className={`${!item.read ? 'bg-light-primary' : ''} cursor-pointer`}
@@ -345,9 +357,13 @@ const QuickMenu = () => {
                         </div>
                         <Notifications />
                         <div className="border-top px-3 pt-3 pb-3">
-                            <Link href="/dashboard/notification-history" className="text-link fw-semi-bold">
-                                Voir toutes les notifications
-                            </Link>
+                            <a 
+                                href="#" 
+                                className="text-link fw-semi-bold"
+                                onClick={(e) => { e.preventDefault(); setShowAllNotificationsModal(true); }}
+                            >
+                                Voir toutes les notifications ({notifications.length})
+                            </a>
                         </div>
                     </Dropdown.Item>
                 </Dropdown.Menu>
@@ -443,9 +459,13 @@ const QuickMenu = () => {
                         </div>
                         <Notifications />
                         <div className="border-top px-3 pt-3 pb-3">
-                            <Link href="/dashboard/notification-history" className="text-link fw-semi-bold">
-                                Voir toutes les notifications
-                            </Link>
+                            <a 
+                                href="#" 
+                                className="text-link fw-semi-bold"
+                                onClick={(e) => { e.preventDefault(); setShowAllNotificationsModal(true); }}
+                            >
+                                Voir toutes les notifications ({notifications.length})
+                            </a>
                         </div>
                     </Dropdown.Item>
                 </Dropdown.Menu>
@@ -647,6 +667,297 @@ const QuickMenu = () => {
                     <Button 
                         variant="secondary" 
                         onClick={() => { setShowNotificationModal(false); setSelectedNotification(null); }}
+                    >
+                        Fermer
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Modal Toutes les Notifications */}
+            <Modal 
+                show={showAllNotificationsModal} 
+                onHide={() => {
+                    setShowAllNotificationsModal(false);
+                    setCurrentPage(1);
+                    setFilterReadStatus('all');
+                    setFilterYear('');
+                    setFilterMonth('');
+                    setFilterDay('');
+                }} 
+                centered
+                size="xl"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title className="d-flex align-items-center">
+                        <i className="fe fe-bell text-primary me-2"></i>
+                        Toutes les notifications
+                        <Badge bg="primary" className="ms-2">{notifications.length}</Badge>
+                        {unreadCount > 0 && (
+                            <Badge bg="danger" className="ms-2">{unreadCount} non lue(s)</Badge>
+                        )}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ padding: 0 }}>
+                    {/* Filtres */}
+                    <div className="p-3 bg-light border-bottom">
+                        <Row className="g-2 align-items-end">
+                            <Col md={3}>
+                                <Form.Group>
+                                    <Form.Label className="small mb-1">Statut de lecture</Form.Label>
+                                    <Form.Select 
+                                        size="sm"
+                                        value={filterReadStatus}
+                                        onChange={(e) => { setFilterReadStatus(e.target.value); setCurrentPage(1); }}
+                                    >
+                                        <option value="all">Toutes</option>
+                                        <option value="unread">Non lues</option>
+                                        <option value="read">Lues</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col md={2}>
+                                <Form.Group>
+                                    <Form.Label className="small mb-1">Année</Form.Label>
+                                    <Form.Select 
+                                        size="sm"
+                                        value={filterYear}
+                                        onChange={(e) => { setFilterYear(e.target.value); setCurrentPage(1); }}
+                                    >
+                                        <option value="">Toutes</option>
+                                        {[...new Set(notifications.map(n => new Date(n.createdAt).getFullYear()))]
+                                            .sort((a, b) => b - a)
+                                            .map(year => (
+                                                <option key={year} value={year}>{year}</option>
+                                            ))
+                                        }
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col md={2}>
+                                <Form.Group>
+                                    <Form.Label className="small mb-1">Mois</Form.Label>
+                                    <Form.Select 
+                                        size="sm"
+                                        value={filterMonth}
+                                        onChange={(e) => { setFilterMonth(e.target.value); setCurrentPage(1); }}
+                                    >
+                                        <option value="">Tous</option>
+                                        <option value="1">Janvier</option>
+                                        <option value="2">Février</option>
+                                        <option value="3">Mars</option>
+                                        <option value="4">Avril</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Juin</option>
+                                        <option value="7">Juillet</option>
+                                        <option value="8">Août</option>
+                                        <option value="9">Septembre</option>
+                                        <option value="10">Octobre</option>
+                                        <option value="11">Novembre</option>
+                                        <option value="12">Décembre</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col md={2}>
+                                <Form.Group>
+                                    <Form.Label className="small mb-1">Jour</Form.Label>
+                                    <Form.Select 
+                                        size="sm"
+                                        value={filterDay}
+                                        onChange={(e) => { setFilterDay(e.target.value); setCurrentPage(1); }}
+                                    >
+                                        <option value="">Tous</option>
+                                        {[...Array(31)].map((_, i) => (
+                                            <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col md={3}>
+                                <Button 
+                                    variant="outline-secondary" 
+                                    size="sm"
+                                    className="w-100"
+                                    onClick={() => {
+                                        setFilterReadStatus('all');
+                                        setFilterYear('');
+                                        setFilterMonth('');
+                                        setFilterDay('');
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <i className="fe fe-x me-1"></i>
+                                    Réinitialiser
+                                </Button>
+                            </Col>
+                        </Row>
+                    </div>
+                    
+                    {/* Liste des notifications filtrées */}
+                    <div style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+                        {(() => {
+                            // Appliquer les filtres
+                            let filtered = notifications.filter(n => {
+                                // Filtre statut lecture
+                                if (filterReadStatus === 'read' && !n.read) return false;
+                                if (filterReadStatus === 'unread' && n.read) return false;
+                                
+                                // Filtre année
+                                if (filterYear && new Date(n.createdAt).getFullYear() !== parseInt(filterYear)) return false;
+                                
+                                // Filtre mois
+                                if (filterMonth && (new Date(n.createdAt).getMonth() + 1) !== parseInt(filterMonth)) return false;
+                                
+                                // Filtre jour
+                                if (filterDay && new Date(n.createdAt).getDate() !== parseInt(filterDay)) return false;
+                                
+                                return true;
+                            });
+                            
+                            // Pagination
+                            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                            const startIndex = (currentPage - 1) * itemsPerPage;
+                            const paginatedNotifications = filtered.slice(startIndex, startIndex + itemsPerPage);
+                            
+                            if (filtered.length === 0) {
+                                return (
+                                    <div className="text-center py-5">
+                                        <i className="fe fe-search text-muted" style={{ fontSize: '48px' }}></i>
+                                        <p className="text-muted mt-3">Aucune notification correspondant aux filtres</p>
+                                    </div>
+                                );
+                            }
+                            
+                            return (
+                                <>
+                                    <Table hover className="mb-0">
+                                        <thead className="table-light sticky-top">
+                                            <tr>
+                                                <th style={{ width: '40px' }}></th>
+                                                <th>Capteur</th>
+                                                <th>Message</th>
+                                                <th style={{ width: '80px' }}>Mesures</th>
+                                                <th style={{ width: '150px' }}>Date</th>
+                                                <th style={{ width: '80px' }}>Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginatedNotifications.map((item) => (
+                                                <tr 
+                                                    key={item._id}
+                                                    style={{ 
+                                                        cursor: 'pointer',
+                                                        backgroundColor: !item.read ? 'rgba(98, 75, 255, 0.05)' : 'transparent'
+                                                    }}
+                                                    onClick={() => {
+                                                        setShowAllNotificationsModal(false);
+                                                        handleNotificationClick(item);
+                                                    }}
+                                                >
+                                                    <td className="text-center">
+                                                        <div className={`avatar avatar-xs rounded-circle d-inline-flex align-items-center justify-content-center ${!item.read ? 'bg-primary' : 'bg-secondary'}`}>
+                                                            <i className="fe fe-cpu text-white" style={{ fontSize: '10px' }}></i>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span className={!item.read ? 'fw-bold' : ''}>
+                                                            {item.capteurId?.designation || 'Capteur'}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span className={!item.read ? 'text-dark' : 'text-muted'}>
+                                                            {item.message?.length > 60 ? item.message.substring(0, 60) + '...' : item.message}
+                                                        </span>
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <Badge bg={item.mesures?.length > 0 ? 'info' : 'secondary'}>
+                                                            {item.mesures?.length || 0}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="small text-muted">
+                                                        {new Date(item.createdAt).toLocaleString('fr-FR', {
+                                                            day: '2-digit',
+                                                            month: '2-digit',
+                                                            year: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <Badge bg={item.read ? 'secondary' : 'primary'} className="rounded-pill">
+                                                            {item.read ? 'Lu' : 'Nouveau'}
+                                                        </Badge>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                    
+                                    {/* Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+                                            <small className="text-muted">
+                                                Affichage {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filtered.length)} sur {filtered.length}
+                                            </small>
+                                            <Pagination size="sm" className="mb-0">
+                                                <Pagination.First 
+                                                    onClick={() => setCurrentPage(1)} 
+                                                    disabled={currentPage === 1}
+                                                />
+                                                <Pagination.Prev 
+                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                                                    disabled={currentPage === 1}
+                                                />
+                                                
+                                                {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                                                    let pageNum;
+                                                    if (totalPages <= 5) {
+                                                        pageNum = i + 1;
+                                                    } else if (currentPage <= 3) {
+                                                        pageNum = i + 1;
+                                                    } else if (currentPage >= totalPages - 2) {
+                                                        pageNum = totalPages - 4 + i;
+                                                    } else {
+                                                        pageNum = currentPage - 2 + i;
+                                                    }
+                                                    
+                                                    return (
+                                                        <Pagination.Item
+                                                            key={pageNum}
+                                                            active={currentPage === pageNum}
+                                                            onClick={() => setCurrentPage(pageNum)}
+                                                        >
+                                                            {pageNum}
+                                                        </Pagination.Item>
+                                                    );
+                                                })}
+                                                
+                                                <Pagination.Next 
+                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                                                    disabled={currentPage === totalPages}
+                                                />
+                                                <Pagination.Last 
+                                                    onClick={() => setCurrentPage(totalPages)} 
+                                                    disabled={currentPage === totalPages}
+                                                />
+                                            </Pagination>
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        })()}
+                    </div>
+                </Modal.Body>
+                <Modal.Footer className="border-top">
+                    <Button 
+                        variant="secondary" 
+                        onClick={() => {
+                            setShowAllNotificationsModal(false);
+                            setCurrentPage(1);
+                            setFilterReadStatus('all');
+                            setFilterYear('');
+                            setFilterMonth('');
+                            setFilterDay('');
+                        }}
                     >
                         Fermer
                     </Button>
