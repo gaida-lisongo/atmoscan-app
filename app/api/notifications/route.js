@@ -18,7 +18,7 @@ export async function GET(request) {
             query.capteurId = capteurId;
         }
 
-        const notifications = await Notification.find(query).populate('capteurId').populate('capteurId.entrepriseId').sort({ createdAt: -1 });
+        const notifications = await Notification.find(query).populate('capteurId').populate('capteurId.entrepriseId').populate('mesures').populate('mesures.sourceId').sort({ createdAt: -1 });
 
         return NextResponse.json({ success: true, data: notifications });
     } catch (error) {

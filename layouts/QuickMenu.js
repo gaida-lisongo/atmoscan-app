@@ -1,6 +1,6 @@
 // import node module libraries
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import {
     Row,
@@ -8,15 +8,17 @@ import {
     Image,
     Dropdown,
     ListGroup,
+    Modal,
+    Badge,
+    Table,
+    Button,
+    Accordion,
 } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
 
 // simple bar scrolling used for notification item scrolling
 import SimpleBar from 'simplebar-react';
 import 'simplebar/dist/simplebar.min.css';
-
-// import data files
-import NotificationList from 'data/Notification';
 
 // import hooks
 import useMounted from 'hooks/useMounted';
@@ -27,6 +29,156 @@ const QuickMenu = () => {
     const router = useRouter();
     const hasMounted = useMounted();
     const { user, logout } = useAuthStore();
+    const [notifications, setNotifications] = useState([]);
+    const [showNotificationModal, setShowNotificationModal] = useState(false);
+    const [selectedNotification, setSelectedNotification] = useState(null);
+    const [gazList, setGazList] = useState([]);
+
+    // Fetch gaz pour avoir les noms
+    const fetchGaz = async () => {
+        try {
+            const response = await fetch('/api/gaz');
+            const data = await response.json();
+            if (data.success) {
+                setGazList(data.data);
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération des gaz:", error);
+        }
+    };
+
+    // Obtenir le nom du gaz par son ID
+    const getGazName = (gazId) => {
+        const gaz = gazList.find(g => g._id === gazId);
+        return gaz?.designation || gaz?.formuleChimique || 'Gaz inconnu';
+    };
+
+    // Export PDF du rapport
+    const exportToPDF = () => {
+        if (!selectedNotification) return;
+        
+        const printContent = document.getElementById('notification-report');
+        const printWindow = window.open('', '_blank');
+        
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Rapport Notification - ${selectedNotification.capteurId?.designation || 'Capteur'}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #624bff; border-bottom: 2px solid #624bff; padding-bottom: 10px; }
+                        h2 { color: #333; margin-top: 20px; }
+                        .info-box { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; }
+                        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+                        .badge-success { background: #28a745; color: white; }
+                        .badge-warning { background: #ffc107; color: black; }
+                        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background: #624bff; color: white; }
+                        tr:nth-child(even) { background: #f8f9fa; }
+                        .mesure-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+                        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>📋 Rapport de Notification</h1>
+                    
+                    <div class="info-box">
+                        <h2>🔧 Informations du Capteur</h2>
+                        <p><strong>Désignation:</strong> ${selectedNotification.capteurId?.designation || '-'}</p>
+                        <p><strong>UUID:</strong> ${selectedNotification.capteurId?.uuid || '-'}</p>
+                        <p><strong>Type:</strong> ${selectedNotification.capteurId?.type || '-'}</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h2>📝 Message</h2>
+                        <p>${selectedNotification.message || '-'}</p>
+                        <p><strong>Statut:</strong> <span class="badge ${selectedNotification.read ? 'badge-success' : 'badge-warning'}">${selectedNotification.read ? 'Lu' : 'Non lu'}</span></p>
+                        <p><strong>Date:</strong> ${new Date(selectedNotification.createdAt).toLocaleString('fr-FR')}</p>
+                    </div>
+                    
+                    <h2>📊 Mesures Associées (${selectedNotification.mesures?.length || 0})</h2>
+                    ${selectedNotification.mesures?.length > 0 ? 
+                        selectedNotification.mesures.map((mesure, idx) => `
+                            <div class="mesure-section">
+                                <h3>Mesure #${idx + 1} - ${new Date(mesure.createdAt).toLocaleString('fr-FR')}</h3>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Gaz</th>
+                                            <th>Valeur (PPM)</th>
+                                            <th>Timestamp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${mesure.ppm?.map(p => `
+                                            <tr>
+                                                <td>${getGazName(p.gaz)}</td>
+                                                <td>${p.value}</td>
+                                                <td>${new Date(p.timestamp).toLocaleString('fr-FR')}</td>
+                                            </tr>
+                                        `).join('') || '<tr><td colspan="3">Aucune donnée</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `).join('') 
+                    : '<p>Aucune mesure associée</p>'}
+                    
+                    <div class="footer">
+                        <p>Rapport généré le ${new Date().toLocaleString('fr-FR')}</p>
+                    </div>
+                </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+        }, 250);
+    };
+
+    const fetchNotifications = async () => {
+        try {
+            const response = await fetch('/api/notifications');
+            const data = await response.json();
+            if (data.success) {
+                console.log("Notifications fetched:", data.data);
+                setNotifications(data.data);
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération des notifications:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+        fetchGaz();
+    }, []);
+
+    // Calcul du nombre de notifications non lues
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    // Ouvrir modal avec détails
+    const handleNotificationClick = async (notif) => {
+        setSelectedNotification(notif);
+        setShowNotificationModal(true);
+        
+        // Marquer comme lu si pas encore lu
+        if (!notif.read) {
+            try {
+                await fetch(`/api/notifications?id=${notif._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ read: true })
+                });
+                // Rafraîchir les notifications
+                fetchNotifications();
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour:", error);
+            }
+        }
+    };
 
     // console.log('QuickMenu: Rendering', { user, hasMounted });
     
@@ -100,20 +252,52 @@ const QuickMenu = () => {
         return (
             <SimpleBar style={{ maxHeight: '300px' }}>
                 <ListGroup variant="flush">
-                    {NotificationList.map(function (item, index) {
-                        return (
-                            <ListGroup.Item className={index === 0 ? 'bg-light' : ''} key={index}>
+                    {notifications.length === 0 ? (
+                        <ListGroup.Item className="text-center text-muted py-4">
+                            <i className="fe fe-bell-off mb-2" style={{ fontSize: '24px' }}></i>
+                            <p className="mb-0">Aucune notification</p>
+                        </ListGroup.Item>
+                    ) : (
+                        notifications.slice(0, 5).map((item, index) => (
+                            <ListGroup.Item 
+                                key={item._id} 
+                                className={`${!item.read ? 'bg-light-primary' : ''} cursor-pointer`}
+                                style={{ 
+                                    cursor: 'pointer',
+                                    borderLeft: !item.read ? '3px solid #624bff' : 'none',
+                                    backgroundColor: !item.read ? 'rgba(98, 75, 255, 0.08)' : 'transparent'
+                                }}
+                                onClick={() => handleNotificationClick(item)}
+                            >
                                 <Row>
                                     <Col>
-                                        <Link href="#" className="text-muted">
-                                            <h5 className=" mb-1">{item.sender}</h5>
-                                            <p className="mb-0"> {item.message}</p>
-                                        </Link>
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <div className="flex-grow-1">
+                                                <h6 className={`mb-1 ${!item.read ? 'fw-bold' : ''}`}>
+                                                    <i className={`fe fe-cpu me-2 ${!item.read ? 'text-primary' : 'text-muted'}`}></i>
+                                                    {item.capteurId?.designation || 'Capteur'}
+                                                </h6>
+                                                <p className={`mb-1 small ${!item.read ? 'text-dark' : 'text-muted'}`}>
+                                                    {item.message?.length > 50 ? item.message.substring(0, 50) + '...' : item.message}
+                                                </p>
+                                                <small className="text-muted">
+                                                    {new Date(item.createdAt).toLocaleString('fr-FR', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </small>
+                                            </div>
+                                            {!item.read && (
+                                                <span className="badge bg-primary rounded-pill ms-2">Nouveau</span>
+                                            )}
+                                        </div>
                                     </Col>
                                 </Row>
                             </ListGroup.Item>
-                        );
-                    })}
+                        ))
+                    )}
                 </ListGroup>
             </SimpleBar>
         );
@@ -128,9 +312,17 @@ const QuickMenu = () => {
                     as="a"
                     bsPrefix=' '
                     id="dropdownNotification"
-                    className="text-dark icon-notifications me-lg-1 btn btn-light btn-icon rounded-circle indicator indicator-primary"
+                    className={`text-dark icon-notifications me-lg-1 btn btn-light btn-icon rounded-circle ${unreadCount > 0 ? 'indicator indicator-primary' : ''}`}
                 >
                     <i className="fe fe-bell"></i>
+                    {unreadCount > 0 && (
+                        <span 
+                            className="position-absolute translate-middle badge rounded-pill bg-danger"
+                            style={{ top: '8px', right: '-2px', fontSize: '10px' }}
+                        >
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                    )}
                 </Dropdown.Toggle>
                 <Dropdown.Menu
                     className="dashboard-dropdown notifications-dropdown dropdown-menu-lg dropdown-menu-end mt-4 py-0"
@@ -138,8 +330,13 @@ const QuickMenu = () => {
                     align="end"
                 >
                     <Dropdown.Item className="mt-3" bsPrefix=' ' as="div">
-                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-end">
-                            <span className="h4 mb-0">Notifications</span>
+                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-center">
+                            <span className="h4 mb-0">
+                                Notifications
+                                {unreadCount > 0 && (
+                                    <Badge bg="danger" className="ms-2">{unreadCount}</Badge>
+                                )}
+                            </span>
                             <Link href="/" className="text-muted">
                                 <span className="align-middle">
                                     <i className="fe fe-settings me-1"></i>
@@ -213,9 +410,17 @@ const QuickMenu = () => {
                     as="a"
                     bsPrefix=' '
                     id="dropdownNotificationMobile"
-                    className="text-dark icon-notifications me-lg-1 btn btn-light btn-icon rounded-circle indicator indicator-primary"
+                    className={`text-dark icon-notifications me-lg-1 btn btn-light btn-icon rounded-circle ${unreadCount > 0 ? 'indicator indicator-primary' : ''}`}
                 >
                     <i className="fe fe-bell"></i>
+                    {unreadCount > 0 && (
+                        <span 
+                            className="position-absolute translate-middle badge rounded-pill bg-danger"
+                            style={{ top: '8px', right: '-2px', fontSize: '10px' }}
+                        >
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                    )}
                 </Dropdown.Toggle>
                 <Dropdown.Menu
                     className="dashboard-dropdown notifications-dropdown dropdown-menu-lg dropdown-menu-end mt-4 py-0"
@@ -223,8 +428,13 @@ const QuickMenu = () => {
                     align="end"
                 >
                     <Dropdown.Item className="mt-3" bsPrefix=' ' as="div">
-                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-end">
-                            <span className="h4 mb-0">Notifications</span>
+                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-center">
+                            <span className="h4 mb-0">
+                                Notifications
+                                {unreadCount > 0 && (
+                                    <Badge bg="danger" className="ms-2">{unreadCount}</Badge>
+                                )}
+                            </span>
                             <Link href="/" className="text-muted">
                                 <span className="align-middle">
                                     <i className="fe fe-settings me-1"></i>
@@ -291,6 +501,157 @@ const QuickMenu = () => {
     return (
         <Fragment>
             { hasMounted && isDesktop ? <QuickMenuDesktop /> : <QuickMenuMobile />}
+            
+            {/* Modal Détail Notification */}
+            <Modal 
+                show={showNotificationModal} 
+                onHide={() => { setShowNotificationModal(false); setSelectedNotification(null); }} 
+                centered
+                size="lg"
+            >
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="d-flex align-items-center">
+                        <i className="fe fe-bell text-primary me-2"></i>
+                        Détail de la notification
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body id="notification-report" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                    {selectedNotification && (
+                        <div>
+                            {/* Capteur Info */}
+                            <div className="d-flex align-items-center mb-3 p-3 bg-light rounded">
+                                <div className="avatar avatar-md bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <i className="fe fe-cpu"></i>
+                                </div>
+                                <div>
+                                    <h6 className="mb-0">{selectedNotification.capteurId?.designation || 'Capteur'}</h6>
+                                    <small className="text-muted">
+                                        UUID: {selectedNotification.capteurId?.uuid?.substring(0, 8)}... | Type: {selectedNotification.capteurId?.type}
+                                    </small>
+                                </div>
+                                <Badge 
+                                    bg={selectedNotification.read ? 'secondary' : 'success'} 
+                                    className="ms-auto"
+                                >
+                                    {selectedNotification.read ? 'Lu' : 'Non lu'}
+                                </Badge>
+                            </div>
+
+                            {/* Message */}
+                            <div className="mb-3">
+                                <label className="text-muted small mb-1">
+                                    <i className="fe fe-message-square me-1"></i>Message
+                                </label>
+                                <div className="p-3 border rounded bg-white">
+                                    {selectedNotification.message}
+                                </div>
+                            </div>
+
+                            {/* Mesures */}
+                            <div className="mb-3">
+                                <label className="text-muted small mb-1 d-flex align-items-center">
+                                    <i className="fe fe-activity me-1"></i>
+                                    Mesures associées 
+                                    <Badge bg="primary" className="ms-2">{selectedNotification.mesures?.length || 0}</Badge>
+                                </label>
+                                
+                                {selectedNotification.mesures?.length > 0 ? (
+                                    <Accordion defaultActiveKey="0">
+                                        {selectedNotification.mesures.map((mesure, idx) => (
+                                            <Accordion.Item eventKey={String(idx)} key={mesure._id || idx}>
+                                                <Accordion.Header>
+                                                    <div className="d-flex align-items-center w-100">
+                                                        <Badge bg="info" className="me-2">#{idx + 1}</Badge>
+                                                        <span className="me-auto">
+                                                            Mesure du {new Date(mesure.createdAt).toLocaleDateString('fr-FR')}
+                                                        </span>
+                                                        <Badge bg="secondary" className="me-2">
+                                                            {mesure.ppm?.length || 0} gaz
+                                                        </Badge>
+                                                    </div>
+                                                </Accordion.Header>
+                                                <Accordion.Body className="p-0">
+                                                    <Table responsive hover size="sm" className="mb-0">
+                                                        <thead className="table-primary">
+                                                            <tr>
+                                                                <th>Gaz</th>
+                                                                <th className="text-end">Valeur (PPM)</th>
+                                                                <th>Timestamp</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {mesure.ppm?.map((p, pIdx) => (
+                                                                <tr key={p._id || pIdx}>
+                                                                    <td>
+                                                                        <i className="fe fe-wind text-muted me-1"></i>
+                                                                        {getGazName(p.gaz)}
+                                                                    </td>
+                                                                    <td className="text-end">
+                                                                        <Badge 
+                                                                            bg={p.value > 30 ? 'danger' : p.value > 15 ? 'warning' : 'success'}
+                                                                            className="font-monospace"
+                                                                        >
+                                                                            {p.value.toFixed(2)}
+                                                                        </Badge>
+                                                                    </td>
+                                                                    <td className="text-muted small">
+                                                                        {new Date(p.timestamp).toLocaleString('fr-FR')}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </Table>
+                                                </Accordion.Body>
+                                            </Accordion.Item>
+                                        ))}
+                                    </Accordion>
+                                ) : (
+                                    <div className="p-4 border rounded bg-light text-center">
+                                        <i className="fe fe-inbox text-muted" style={{ fontSize: '32px' }}></i>
+                                        <p className="text-muted mt-2 mb-0">Aucune mesure associée à cette notification</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Date */}
+                            <div className="d-flex justify-content-between text-muted small border-top pt-3">
+                                <span>
+                                    <i className="fe fe-calendar me-1"></i>
+                                    {new Date(selectedNotification.createdAt).toLocaleDateString('fr-FR', {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                </span>
+                                <span>
+                                    <i className="fe fe-clock me-1"></i>
+                                    {new Date(selectedNotification.createdAt).toLocaleTimeString('fr-FR', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer className="border-0">
+                    <Button 
+                        variant="outline-danger" 
+                        onClick={exportToPDF}
+                        disabled={!selectedNotification}
+                    >
+                        <i className="fe fe-file-text me-2"></i>
+                        Exporter PDF
+                    </Button>
+                    <Button 
+                        variant="secondary" 
+                        onClick={() => { setShowNotificationModal(false); setSelectedNotification(null); }}
+                    >
+                        Fermer
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </Fragment>
     )
 }
