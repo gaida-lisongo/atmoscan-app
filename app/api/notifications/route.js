@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { Notification } from "@/lib/models/Capteur";
+import Mesure from "@/lib/models/Mesure";
 
 export async function GET(request) {
     try {
