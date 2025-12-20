@@ -141,7 +141,7 @@ const EntrepriseDetail = ({ entreprise, sources }) => {
                                 <p className="mb-0 text-muted">{entreprise?.categorie}</p>
                             </div>
                         </div>
-                        <Button variant="outline-primary" onClick={() => setShowModal(true)}>Mésures</Button>
+                        <Button variant="outline-primary" onClick={() => window.location.href = `/capteurs/${entreprise?._id}`}>Capteurs</Button>
                     </div>
                 </div>
             </Col>

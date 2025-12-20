@@ -4,10 +4,15 @@ import { useRef, useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Table, Button, Modal, Form, Badge, Spinner, Alert } from 'react-bootstrap';
 import { Plus, Edit2, Trash2, Search, Cpu, Eye, Download, Upload } from 'react-feather';
 import useAuthStore from '@/stores/authStore';
+import { useParams } from 'next/navigation';
 
 const CapteursPage = () => {
+    //fetching id from url
+    const { id } = useParams();
     const { user } = useAuthStore();
-    const currentPrivilege = user?.currentPrivilege?.designation || user?.privileges?.[0]?.designation;
+    const currentPrivilege = user?.currentPrivilege?.entreprises || [];
+    const userRole = user?.currentPrivilege?.role || user?.role || 'DDD'; // Fallback sur DDD
+    console.log('Current Privilege =', currentPrivilege);
     
     const [capteurs, setCapteurs] = useState([]);
     const [entreprises, setEntreprises] = useState([]);
@@ -35,8 +40,10 @@ const CapteursPage = () => {
     });
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (currentPrivilege.length > 0) {
+            fetchData();
+        }
+    }, [currentPrivilege]);
 
     const fetchData = async () => {
         try {
@@ -49,8 +56,23 @@ const CapteursPage = () => {
             const capteursData = await capteursRes.json();
             const entreprisesData = await entreprisesRes.json();
 
-            if (capteursData.success) setCapteurs(capteursData.data);
-            if (entreprisesData.success) setEntreprises(entreprisesData.data);
+            if (capteursData.success && entreprisesData.success) {
+                // Extraire les IDs des entreprises autorisées
+                const entrepriseIds = currentPrivilege.map(ent => ent._id);
+                
+                // Filtrer les capteurs pour ne montrer que ceux des entreprises autorisées
+                const capteursFiltres = capteursData.data.filter(capteur => 
+                    entrepriseIds.includes(capteur.entrepriseId)
+                );
+                
+                // Filtrer les entreprises pour ne montrer que celles autorisées
+                const entreprisesFiltrees = entreprisesData.data.filter(entreprise => 
+                    entrepriseIds.includes(entreprise._id)
+                );
+
+                setCapteurs(capteursFiltres);
+                setEntreprises(entreprisesFiltrees);
+            }
         } catch (err) {
             setError('Erreur lors du chargement des données');
         } finally {
@@ -85,10 +107,10 @@ const CapteursPage = () => {
             const url = currentCapteur ? `/api/capteurs?id=${currentCapteur._id}` : '/api/capteurs';
             const method = currentCapteur ? 'PUT' : 'POST';
 
-            // Ajouter automatiquement le type basé sur le privilège
+            // Ajouter automatiquement le type basé sur le rôle
             const dataToSend = {
                 ...formData,
-                type: currentPrivilege // DDD ou DEHPE
+                type: userRole // DDD ou DEHPE
             };
 
             const res = await fetch(url, {
@@ -331,10 +353,12 @@ const CapteursPage = () => {
         }
     };
 
-    const filteredCapteurs = capteurs.filter(cap => cap.type === currentPrivilege).filter(c =>
+    // Filtrage par recherche textuelle (les capteurs sont déjà filtrés par entreprise autorisée)
+    const filteredCapteurs = capteurs.filter(c =>
         c.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.uuid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.type?.toLowerCase().includes(searchTerm.toLowerCase())
+        c.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getEntrepriseName(c.entrepriseId).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) {
@@ -466,11 +490,11 @@ const CapteursPage = () => {
                         <Alert variant="info" className="mb-3">
                             <small>
                                 <strong>Type de capteur :</strong>{' '}
-                                <Badge bg={currentPrivilege === 'DDD' ? 'success' : 'primary'}>
-                                    {currentPrivilege || 'Non défini'}
+                                <Badge bg={userRole === 'DDD' ? 'success' : 'primary'}>
+                                    {userRole || 'Non défini'}
                                 </Badge>
                                 <br />
-                                <span className="text-muted">Le type est déterminé par votre privilège actuel</span>
+                                <span className="text-muted">Le type est déterminé par votre rôle actuel</span>
                             </small>
                         </Alert>
 
