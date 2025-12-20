@@ -382,12 +382,12 @@ const CapteursPage = () => {
                     </h2>
                     <p className="text-muted mb-0">Gérez vos capteurs environnementaux</p>
                 </Col>
-                <Col md={6} className="text-md-end">
+                {/* <Col md={6} className="text-md-end">
                     <Button variant="primary" onClick={() => handleShow()}>
                         <Plus size={18} className="me-2" />
                         Nouveau Capteur
                     </Button>
-                </Col>
+                </Col> */}
             </Row>
 
             {error && <Alert variant="danger" dismissible onClose={() => setError(null)}>{error}</Alert>}
@@ -644,7 +644,7 @@ const CapteursPage = () => {
                     </div>
                     <div className="d-flex align-items-center gap-2">
                         {/* Hidden file input */}
-                        <input
+                        {/* <input
                             type="file"
                             ref={fileInputRef}
                             accept=".csv"
@@ -659,8 +659,8 @@ const CapteursPage = () => {
                         >
                             <Download size={14} className="me-1" />
                             Template
-                        </Button>
-                        <Button 
+                        </Button> */}
+                        {/* <Button 
                             variant="outline-primary"
                             size="sm"
                             onClick={() => fileInputRef.current?.click()}
@@ -671,7 +671,7 @@ const CapteursPage = () => {
                             ) : (
                                 <><Upload size={14} className="me-1" /> Importer</>
                             )}
-                        </Button>
+                        </Button> */}
                         <Button 
                             variant="outline-success"
                             size="sm"
