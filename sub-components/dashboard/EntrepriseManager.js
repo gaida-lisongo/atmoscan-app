@@ -1,8 +1,8 @@
 'use client'
 import Link from 'next/link';
-import { Card, Button, Modal, Form, InputGroup, Badge } from 'react-bootstrap';
+import { Card, Button, Modal, Form, InputGroup, Badge, Dropdown } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
-import { Edit, MapPin, Phone, Mail, Search, Briefcase, Eye, Filter } from 'react-feather';
+import { Edit, MapPin, Phone, Mail, Search, Briefcase, Eye, Filter, MoreVertical } from 'react-feather';
 import useAuthStore from '@/stores/authStore';
 
 const EntrepriseManager = () => {
@@ -142,86 +142,99 @@ const EntrepriseManager = () => {
                             e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
                         }}>
                             <Card.Body className="p-3 p-md-4">
-                                {/* Layout Desktop - Pleine largeur */}
-                                <div className="d-none d-md-flex align-items-center w-100">
-                                    {/* Logo & Titre Desktop */}
-                                    <div className="d-flex align-items-center" style={{minWidth: '300px', width: '25%'}}>
-                                        <div className="d-flex align-items-center">
-                                            <div className="bg-white rounded-3 shadow-sm d-flex align-items-center justify-content-center fw-bold text-primary position-relative" 
+                                {/* Layout Desktop - Format vertical comme mobile mais plus espacé */}
+                                <div className="d-none d-md-block">
+                                    {/* Header Desktop */}
+                                    <div className="d-flex align-items-start justify-content-between mb-4">
+                                        <div className="d-flex align-items-center flex-grow-1">
+                                            <div className="bg-white rounded-3 shadow-sm d-flex align-items-center justify-content-center fw-bold text-white position-relative me-4" 
                                                  style={{ 
-                                                     width: '55px', 
-                                                     height: '55px', 
-                                                     minWidth: '55px',
-                                                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                                     color: 'white'
+                                                     width: '65px', 
+                                                     height: '65px', 
+                                                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                                                  }}>
                                                 {item.designation.charAt(0).toUpperCase()}
                                                 <div className="position-absolute bottom-0 end-0 bg-success rounded-circle" 
-                                                     style={{ width: '12px', height: '12px', border: '2px solid white' }}></div>
+                                                     style={{ width: '14px', height: '14px', border: '2px solid white' }}></div>
                                             </div>
-                                            <div className="ms-3 overflow-hidden">
-                                                <h5 className="mb-1 text-truncate fw-bold" style={{ fontSize: '1.1rem' }}>
+                                            <div className="flex-grow-1 overflow-hidden">
+                                                <h4 className="mb-2 text-truncate fw-bold" style={{ fontSize: '1.3rem' }}>
                                                     <Link href={`/entreprises/${item._id}`} className="text-dark text-decoration-none">
                                                         {item.designation}
                                                     </Link>
-                                                </h5>
-                                                <Badge bg="light" className="text-primary fw-normal px-2 py-1" style={{ fontSize: '0.75rem' }}>
+                                                </h4>
+                                                <Badge bg="light" className="text-primary fw-normal px-3 py-2" style={{ fontSize: '0.85rem' }}>
                                                     {item.categorie}
                                                 </Badge>
                                             </div>
                                         </div>
+                                        
+                                        <Dropdown>
+                                            <Dropdown.Toggle 
+                                                variant="outline-primary"
+                                                className="rounded-3 px-4 py-2 d-flex align-items-center"
+                                                style={{ border: '1px solid #667eea' }}>
+                                                <MoreVertical size="16" className="me-2" />
+                                                Actions
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu align="end" className="border-0 shadow-lg rounded-3">
+                                                <Dropdown.Item 
+                                                    as={Link} 
+                                                    href={`/entreprises/${item._id}`}
+                                                    className="d-flex align-items-center py-2 px-3">
+                                                    <Eye size="16" className="me-3 text-primary" />
+                                                    Consulter l'entreprise
+                                                </Dropdown.Item>
+                                                <Dropdown.Item 
+                                                    onClick={() => handleOpenModal(item)}
+                                                    className="d-flex align-items-center py-2 px-3">
+                                                    <Edit size="16" className="me-3 text-secondary" />
+                                                    Modifier la description
+                                                </Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
                                     </div>
 
-                                    {/* Infos de Contact Desktop */}
-                                    <div className="flex-grow-1 px-4">
-                                        <div className="d-flex flex-column gap-2 ps-3">
-                                            <div className="d-flex align-items-center text-muted">
-                                                <MapPin size="16" className="me-3 text-primary flex-shrink-0" />
-                                                <span className="text-truncate" style={{ fontSize: '0.9rem' }}>
-                                                    {item.adresse || 'Adresse non renseignée'}
-                                                </span>
+                                    {/* Informations Desktop */}
+                                    <div className="mb-4">
+                                        {item.adresse && (
+                                            <div className="d-flex align-items-start text-muted mb-3" style={{ fontSize: '1rem' }}>
+                                                <MapPin size="18" className="me-3 text-primary flex-shrink-0 mt-1" />
+                                                <span className="lh-sm">{item.adresse}</span>
                                             </div>
-                                            <div className="d-flex align-items-center text-muted">
-                                                <Phone size="16" className="me-3 text-primary flex-shrink-0" />
-                                                <span style={{ fontSize: '0.9rem' }}>
-                                                    {item.telephone || 'Téléphone non renseigné'}
-                                                </span>
-                                            </div>
-                                            <div className="d-flex align-items-center text-muted">
-                                                <Mail size="16" className="me-3 text-primary flex-shrink-0" />
-                                                <span className="text-truncate" style={{ fontSize: '0.9rem' }}>
-                                                    {item.email || 'Email non renseigné'}
-                                                </span>
-                                            </div>
-                                            {item.description && (
-                                                <div className="mt-2 pt-2 border-top">
-                                                    <p className="text-muted mb-0 small lh-sm" style={{ fontSize: '0.85rem' }}>
-                                                        {item.description.split('\n').map((line, index) => (
-                                                            <span key={index}>
-                                                                {line}
-                                                                {index < item.description.split('\n').length - 1 && <br />}
-                                                            </span>
-                                                        ))}
-                                                    </p>
+                                        )}
+                                        
+                                        <div className="row">
+                                            {item.telephone && (
+                                                <div className="col-md-6 mb-3">
+                                                    <div className="d-flex align-items-center text-muted" style={{ fontSize: '1rem' }}>
+                                                        <Phone size="18" className="me-3 text-primary" />
+                                                        <span>{item.telephone}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {item.email && (
+                                                <div className="col-md-6 mb-3">
+                                                    <div className="d-flex align-items-center text-muted" style={{ fontSize: '1rem' }}>
+                                                        <Mail size="18" className="me-3 text-primary" />
+                                                        <span className="text-truncate">{item.email}</span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
-
-                                    {/* Actions Desktop */}
-                                    <div className="d-flex align-items-center gap-2" style={{minWidth: '200px'}}>
-                                        <Link href={`/entreprises/${item._id}`} 
-                                              className="btn btn-outline-primary btn-sm rounded-3 px-3 d-flex align-items-center">
-                                            <Eye size="14" className="me-2" />
-                                            Voir
-                                        </Link>
-                                        <button 
-                                            onClick={() => handleOpenModal(item)}
-                                            className="btn btn-outline-secondary btn-sm rounded-3 px-3 d-flex align-items-center"
-                                            title="Modifier la description">
-                                            <Edit size="14" className="me-2" />
-                                            Description
-                                        </button>
+                                        
+                                        {item.description && (
+                                            <div className="mt-3 pt-3 border-top">
+                                                <p className="text-muted mb-0 lh-base" style={{ fontSize: '0.95rem' }}>
+                                                    {item.description.split('\n').map((line, index) => (
+                                                        <span key={index}>
+                                                            {line}
+                                                            {index < item.description.split('\n').length - 1 && <br />}
+                                                        </span>
+                                                    ))}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -248,13 +261,30 @@ const EntrepriseManager = () => {
                                             </div>
                                         </div>
                                         
-                                        <button 
-                                            onClick={() => handleOpenModal(item)}
-                                            className="btn btn-outline-secondary btn-sm rounded-3 d-flex align-items-center justify-content-center"
-                                            style={{ width: '32px', height: '32px' }}
-                                            title="Modifier la description">
-                                            <Edit size="14" className="text-muted" />
-                                        </button>
+                                        <Dropdown>
+                                            <Dropdown.Toggle 
+                                                variant="outline-primary"
+                                                size="sm"
+                                                className="rounded-3 d-flex align-items-center justify-content-center"
+                                                style={{ width: '36px', height: '36px', padding: '0' }}>
+                                                <MoreVertical size="14" />
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu align="end" className="border-0 shadow-lg rounded-3">
+                                                <Dropdown.Item 
+                                                    as={Link} 
+                                                    href={`/entreprises/${item._id}`}
+                                                    className="d-flex align-items-center py-2 px-3">
+                                                    <Eye size="14" className="me-2 text-primary" />
+                                                    Consulter
+                                                </Dropdown.Item>
+                                                <Dropdown.Item 
+                                                    onClick={() => handleOpenModal(item)}
+                                                    className="d-flex align-items-center py-2 px-3">
+                                                    <Edit size="14" className="me-2 text-secondary" />
+                                                    Description
+                                                </Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
                                     </div>
 
                                     {/* Informations Mobile */}
