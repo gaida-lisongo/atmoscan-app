@@ -58,7 +58,7 @@ const CapteursPage = () => {
 
             if (capteursData.success && entreprisesData.success) {
                 // Extraire les IDs des entreprises autorisées
-                const entrepriseIds = currentPrivilege.map(ent => ent._id);
+                const entrepriseIds = [id];
                 
                 // Filtrer les capteurs pour ne montrer que ceux des entreprises autorisées
                 const capteursFiltres = capteursData.data.filter(capteur => 
@@ -171,7 +171,16 @@ const CapteursPage = () => {
             const res = await fetch(`/api/notifications?capteurId=${capteur._id}`);
             const data = await res.json();
             if (data.success) {
-                setNotifications(data.data || []);
+                // Vérification de sécurité : s'assurer que le capteur appartient à une entreprise autorisée
+                const entrepriseIds = currentPrivilege.map(ent => ent._id);
+                const capteurEntrepriseId = capteur.entrepriseId;
+                
+                if (entrepriseIds.includes(capteurEntrepriseId)) {
+                    setNotifications(data.data || []);
+                } else {
+                    console.warn('Tentative d\'accès à des notifications non autorisées');
+                    setNotifications([]);
+                }
             } else {
                 setNotifications([]);
             }

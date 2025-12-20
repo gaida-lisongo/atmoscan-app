@@ -156,7 +156,16 @@ const QuickMenu = () => {
             const data = await response.json();
             if (data.success) {
                 console.log("Notifications fetched:", data.data);
-                setNotifications(data.data);
+                const entreprisesIds = user?.currentPrivilege?.entreprises?.map(ent => ent._id) || [];
+
+                // Filtrer les notifications pour ne garder que celles des capteurs des entreprises autorisées
+                const filteredNotifications = data.data.filter(notif => {
+                    const capteurEntrepriseId = notif.capteurId?.entrepriseId?._id || notif.capteurId?.entrepriseId;
+                    return notif.capteurId && entreprisesIds.includes(capteurEntrepriseId);
+                });
+                
+                console.log("Filtered Notifications:", filteredNotifications);
+                setNotifications(filteredNotifications);
             }
         } catch (error) {
             console.error("Erreur lors de la récupération des notifications:", error);
@@ -164,9 +173,11 @@ const QuickMenu = () => {
     };
 
     useEffect(() => {
-        fetchNotifications();
-        fetchGaz();
-    }, []);
+        if (user?.currentPrivilege?.entreprises?.length > 0) {
+            fetchNotifications();
+            fetchGaz();
+        }
+    }, [user]);
 
     // Calcul du nombre de notifications non lues
     const unreadCount = notifications.filter(n => !n.read).length;
