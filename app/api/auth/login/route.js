@@ -28,25 +28,29 @@ export async function POST(req) {
         }
 
         // console.log('Utilisateur trouvé:', user);
+        const privilegesData = [];
 
         // 2. Trouver le privilège correspondant
-        const privilege = await Privilege.findOne({ 
+        const privileges = await Privilege.find({ 
             userId: user._id, 
             designation 
-        }).populate('entreprises'); // On peuple simplement, sans filtrer les champs pour l'instant
+        }).populate('entreprises').lean(); // On peuple simplement, sans filtrer les champs pour l'instant
 
-        // console.log('Privilège trouvé:', privilege);
-        if (!privilege) {
+        if (!privileges || privileges.length === 0) {
             return NextResponse.json({ 
                 success: false, 
-                message: "Privilège non trouvé pour cet utilisateur" 
+                message: "Privilèges non trouvés pour cet utilisateur" 
             }, { status: 401 });
         }
 
+        privileges.forEach(privilege => {
+            if (password == privilege.password) {
+                privilegesData.push(...privilege?.entreprises);
+            };
+        });
+
         // 3. Vérifier le mot de passe
-        const isPasswordValid = password == privilege.password;
-        // console.log('Vérification du mot de passe:', isPasswordValid);
-        if (!isPasswordValid) {
+        if (privilegesData.length === 0) {
             return NextResponse.json({ 
                 success: false, 
                 message: "Mot de passe incorrect" 
@@ -58,8 +62,8 @@ export async function POST(req) {
             { 
                 userId: user._id,
                 matricule: user.matricule,
-                privilegeId: privilege._id,
-                designation: privilege.designation
+                privileges: privilegesData.map(p => p._id).join(','),
+                designation: privilegesData.map(p => p.designation).join(',')
             },
             process.env.JWT_SECRET || 'your-secret-key',
             { expiresIn: '7d' }
@@ -81,9 +85,8 @@ export async function POST(req) {
             lieu_naissance: user.lieu_naissance,
             adresse: user.adresse,
             currentPrivilege: {
-                _id: privilege._id,
-                designation: privilege.designation,
-                entreprises: privilege.entreprises
+                designation,
+                entreprises: privilegesData
             }
         };
 

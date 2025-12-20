@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link';
-import { Col, Row, Card, Button, Modal, Form, InputGroup, Badge, Dropdown } from 'react-bootstrap';
+import { Card, Button, Modal, Form, InputGroup, Badge } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
-import { Edit, Trash2, MapPin, Phone, Mail, Plus, Search, MoreVertical, Briefcase, Eye, Filter } from 'react-feather';
+import { Edit, MapPin, Phone, Mail, Search, Briefcase, Eye, Filter } from 'react-feather';
+import useAuthStore from '@/stores/authStore';
 
 const EntrepriseManager = () => {
     const [data, setData] = useState([]);
@@ -10,55 +11,49 @@ const EntrepriseManager = () => {
     const [showModal, setShowModal] = useState(false);
     const [currentEntreprise, setCurrentEntreprise] = useState(null);
     const [loading, setLoading] = useState(false);
+    const { user } = useAuthStore();
 
-    const fetchEntreprises = async () => {
-        try {
-            const res = await fetch('/api/entreprises');
-            const json = await res.json();
-            if (json.success) setData(json.data);
-        } catch (error) {
-            console.error("Erreur de chargement", error);
-        }
-    };
+    useEffect(() => { 
+        setData(user?.currentPrivilege?.entreprises || []);
+    }, [user]);
 
-    useEffect(() => { fetchEntreprises(); }, []);
-
-    const handleSubmit = async (e) => {
+    // Fonction pour modifier seulement la description
+    const handleUpdateDescription = async (e) => {
         e.preventDefault();
         setLoading(true);
         const formData = new FormData(e.target);
-        const payload = Object.fromEntries(formData.entries());
-
-        const method = currentEntreprise ? 'PUT' : 'POST';
-        const url = currentEntreprise ? `/api/entreprises?id=${currentEntreprise._id}` : '/api/entreprises';
+        const description = formData.get('description');
 
         try {
-            const res = await fetch(url, {
-                method,
+            const res = await fetch(`/api/entreprises?id=${currentEntreprise._id}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ description })
             });
             if (res.ok) {
-                fetchEntreprises();
+                // Mettre à jour localement
+                setData(prevData => prevData.map(item => 
+                    item._id === currentEntreprise._id 
+                        ? { ...item, description }
+                        : item
+                ));
                 handleClose();
             }
         } catch (error) {
-            console.error("Erreur enregistrement", error);
+            console.error("Erreur mise à jour description", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm("Supprimer cette entreprise ?")) {
-            await fetch(`/api/entreprises?id=${id}`, { method: 'DELETE' });
-            setData(data.filter(item => item._id !== id));
-        }
-    };
 
-    const handleOpenModal = (entreprise = null) => {
-        setCurrentEntreprise(entreprise);
-        setShowModal(true);
+
+    // Ouvrir modal seulement pour éditer description d'une entreprise existante
+    const handleOpenModal = (entreprise) => {
+        if (entreprise) {
+            setCurrentEntreprise(entreprise);
+            setShowModal(true);
+        }
     };
 
     const handleClose = () => {
@@ -76,14 +71,14 @@ const EntrepriseManager = () => {
             <div className="mb-4">
                 {/* Titre et description */}
                 <div className="mb-3 mb-md-4">
-                    <h2 className="fw-bold text-dark mb-1 fs-4 fs-md-2">AtmoScan</h2>
-                    <p className="text-muted mb-0 small">Annuaire des structures industrielles</p>
+                    <h2 className="fw-bold text-dark mb-1 fs-4 fs-md-2">Mes Entreprises</h2>
+                    <p className="text-muted mb-0 small">Gestion des entreprises sous votre responsabilité</p>
                 </div>
                 
                 {/* Actions Header - Stack sur mobile */}
                 <div className="d-flex flex-column flex-md-row gap-2 gap-md-3 align-items-stretch align-items-md-center">
                     {/* Barre de recherche */}
-                    <div className="flex-grow-1" style={{ maxWidth: '400px' }}>
+                    <div className="flex-grow-1">
                         <InputGroup className="bg-light rounded-3 border-0">
                             <InputGroup.Text className="bg-transparent border-0 ps-3">
                                 <Search size="18" className="text-muted" />
@@ -99,7 +94,7 @@ const EntrepriseManager = () => {
                     </div>
                     
                     {/* Bouton d'action */}
-                    <Button 
+                    {/* <Button 
                         variant="primary" 
                         className="rounded-3 px-3 px-md-4 py-2 d-flex align-items-center justify-content-center fw-semibold" 
                         onClick={() => handleOpenModal()}
@@ -112,7 +107,7 @@ const EntrepriseManager = () => {
                         <Plus size="18" className="me-2"/> 
                         <span className="d-none d-sm-inline">Nouveau Partenaire</span>
                         <span className="d-inline d-sm-none">Ajouter</span>
-                    </Button>
+                    </Button> */}
                 </div>
                 
                 {/* Statistiques rapides */}
@@ -128,29 +123,29 @@ const EntrepriseManager = () => {
                 </div>
             </div>
 
-            {/* LISTE RESPONSIVE */}
-            <Row className="g-2 g-md-3">
+            {/* LISTE RESPONSIVE - PLEINE LARGEUR */}
+            <div className="w-100">
                 {filteredData.map((item) => (
-                    <Col xs={12} key={item._id} className="mb-2 mb-md-3">
+                    <div key={item._id} className="mb-3">
                         <Card className="border-0 shadow-sm h-100 transition-all" 
-                              style={{ 
-                                  borderRadius: '16px',
-                                  transition: 'all 0.3s ease',
-                                  backgroundColor: '#fafbfc'
-                              }}
-                              onMouseEnter={(e) => {
-                                  e.target.style.transform = 'translateY(-2px)';
-                                  e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
-                              }}
-                              onMouseLeave={(e) => {
-                                  e.target.style.transform = 'translateY(0)';
-                                  e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
-                              }}>
+                        style={{ 
+                            borderRadius: '16px',
+                            transition: 'all 0.3s ease',
+                            backgroundColor: '#fafbfc'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
+                        }}>
                             <Card.Body className="p-3 p-md-4">
-                                {/* Layout Desktop */}
-                                <Row className="align-items-center d-none d-md-flex">
+                                {/* Layout Desktop - Pleine largeur */}
+                                <div className="d-none d-md-flex align-items-center w-100">
                                     {/* Logo & Titre Desktop */}
-                                    <Col md={4}>
+                                    <div className="d-flex align-items-center" style={{minWidth: '300px', width: '25%'}}>
                                         <div className="d-flex align-items-center">
                                             <div className="bg-white rounded-3 shadow-sm d-flex align-items-center justify-content-center fw-bold text-primary position-relative" 
                                                  style={{ 
@@ -175,10 +170,10 @@ const EntrepriseManager = () => {
                                                 </Badge>
                                             </div>
                                         </div>
-                                    </Col>
+                                    </div>
 
                                     {/* Infos de Contact Desktop */}
-                                    <Col md={6}>
+                                    <div className="flex-grow-1 px-4">
                                         <div className="d-flex flex-column gap-2 ps-3">
                                             <div className="d-flex align-items-center text-muted">
                                                 <MapPin size="16" className="me-3 text-primary flex-shrink-0" />
@@ -211,36 +206,24 @@ const EntrepriseManager = () => {
                                                 </div>
                                             )}
                                         </div>
-                                    </Col>
+                                    </div>
 
                                     {/* Actions Desktop */}
-                                    <Col md={2} className="text-end">
-                                        <div className="d-flex justify-content-end align-items-center gap-2">
-                                            <Link href={`/entreprises/${item._id}`} 
-                                                  className="btn btn-outline-primary btn-sm rounded-3 px-3 d-flex align-items-center">
-                                                <Eye size="14" className="me-2" />
-                                                Voir
-                                            </Link>
-                                            <Dropdown>
-                                                <Dropdown.Toggle 
-                                                    as="div" 
-                                                    className="btn btn-light btn-sm rounded-3 d-flex align-items-center justify-content-center"
-                                                    style={{ width: '36px', height: '36px', cursor: 'pointer' }}>
-                                                    <MoreVertical size="16" className="text-muted" />
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu align="end" className="border-0 shadow-lg rounded-3">
-                                                    <Dropdown.Item onClick={() => handleOpenModal(item)} className="d-flex align-items-center">
-                                                        <Edit size="14" className="me-2 text-primary" /> Modifier
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Divider />
-                                                    <Dropdown.Item className="text-danger d-flex align-items-center" onClick={() => handleDelete(item._id)}>
-                                                        <Trash2 size="14" className="me-2" /> Supprimer
-                                                    </Dropdown.Item>
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        </div>
-                                    </Col>
-                                </Row>
+                                    <div className="d-flex align-items-center gap-2" style={{minWidth: '200px'}}>
+                                        <Link href={`/entreprises/${item._id}`} 
+                                              className="btn btn-outline-primary btn-sm rounded-3 px-3 d-flex align-items-center">
+                                            <Eye size="14" className="me-2" />
+                                            Voir
+                                        </Link>
+                                        <button 
+                                            onClick={() => handleOpenModal(item)}
+                                            className="btn btn-outline-secondary btn-sm rounded-3 px-3 d-flex align-items-center"
+                                            title="Modifier la description">
+                                            <Edit size="14" className="me-2" />
+                                            Description
+                                        </button>
+                                    </div>
+                                </div>
 
                                 {/* Layout Mobile */}
                                 <div className="d-block d-md-none">
@@ -265,23 +248,13 @@ const EntrepriseManager = () => {
                                             </div>
                                         </div>
                                         
-                                        <Dropdown>
-                                            <Dropdown.Toggle 
-                                                as="div" 
-                                                className="btn btn-light btn-sm rounded-3 d-flex align-items-center justify-content-center"
-                                                style={{ width: '32px', height: '32px', cursor: 'pointer' }}>
-                                                <MoreVertical size="14" className="text-muted" />
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu align="end" className="border-0 shadow-lg rounded-3">
-                                                <Dropdown.Item onClick={() => handleOpenModal(item)} className="d-flex align-items-center">
-                                                    <Edit size="14" className="me-2 text-primary" /> Modifier
-                                                </Dropdown.Item>
-                                                <Dropdown.Divider />
-                                                <Dropdown.Item className="text-danger d-flex align-items-center" onClick={() => handleDelete(item._id)}>
-                                                    <Trash2 size="14" className="me-2" /> Supprimer
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
+                                        <button 
+                                            onClick={() => handleOpenModal(item)}
+                                            className="btn btn-outline-secondary btn-sm rounded-3 d-flex align-items-center justify-content-center"
+                                            style={{ width: '32px', height: '32px' }}
+                                            title="Modifier la description">
+                                            <Edit size="14" className="text-muted" />
+                                        </button>
                                     </div>
 
                                     {/* Informations Mobile */}
@@ -337,9 +310,9 @@ const EntrepriseManager = () => {
                                 </div>
                             </Card.Body>
                         </Card>
-                    </Col>
+                    </div>
                 ))}
-            </Row>
+            </div>
 
             {/* État vide */}
             {filteredData.length === 0 && (
@@ -348,24 +321,14 @@ const EntrepriseManager = () => {
                         <Briefcase size="48" className="text-muted" />
                     </div>
                     <h5 className="text-muted mb-2">
-                        {searchTerm ? 'Aucun résultat trouvé' : 'Aucune entreprise enregistrée'}
+                        {searchTerm ? 'Aucun résultat trouvé' : 'Aucune entreprise assignée'}
                     </h5>
                     <p className="text-muted small mb-3">
                         {searchTerm 
                             ? `Aucune entreprise ne correspond à "${searchTerm}"` 
-                            : 'Commencez par ajouter votre premier partenaire'
+                            : 'Aucune entreprise n\'est actuellement sous votre responsabilité'
                         }
                     </p>
-                    {!searchTerm && (
-                        <Button 
-                            variant="outline-primary" 
-                            onClick={() => handleOpenModal()}
-                            className="rounded-3 px-4"
-                        >
-                            <Plus size="18" className="me-2" />
-                            Ajouter une entreprise
-                        </Button>
-                    )}
                 </div>
             )}
 
@@ -375,120 +338,39 @@ const EntrepriseManager = () => {
                     <Modal.Title className="fw-bold d-flex align-items-center" style={{ fontSize: '1.25rem' }}>
                         <div className="bg-primary rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" 
                              style={{ width: '40px', height: '40px' }}>
-                            {currentEntreprise ? <Edit size="20" color="white" /> : <Plus size="20" color="white" />}
+                            <Edit size="20" color="white" />
                         </div>
-                        {currentEntreprise ? 'Éditer l\'entreprise' : 'Nouveau partenaire'}
+                        Modifier la description
                     </Modal.Title>
                 </Modal.Header>
-                <Form onSubmit={handleSubmit}>
+                <Form onSubmit={handleUpdateDescription}>
                     <Modal.Body className="py-4">
-                        <Row>
-                            <Col md={12} className="mb-4">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Nom de l'entreprise *
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="designation" 
-                                        defaultValue={currentEntreprise?.designation} 
-                                        required 
-                                        placeholder="Ex: Acme Corporation"
-                                        style={{ 
-                                            fontSize: '1rem',
-                                            border: '1px solid #e9ecef',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                        onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
+                        {/* Informations en lecture seule */}
+                        <div className="mb-4 p-3 bg-light rounded-3">
+                            <h5 className="mb-3 fw-bold">{currentEntreprise?.designation}</h5>
+                            <div className="row">
+                                <div className="col-md-6 mb-2">
+                                    <small className="text-muted d-block">Catégorie</small>
+                                    <span>{currentEntreprise?.categorie || 'Non renseignée'}</span>
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <small className="text-muted d-block">Téléphone</small>
+                                    <span>{currentEntreprise?.telephone || 'Non renseigné'}</span>
+                                </div>
+                                <div className="col-12 mb-2">
+                                    <small className="text-muted d-block">Email</small>
+                                    <span>{currentEntreprise?.email || 'Non renseigné'}</span>
+                                </div>
+                                <div className="col-12">
+                                    <small className="text-muted d-block">Adresse</small>
+                                    <span>{currentEntreprise?.adresse || 'Non renseignée'}</span>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <Row>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Catégorie
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="categorie" 
-                                        defaultValue={currentEntreprise?.categorie} 
-                                        placeholder="Ex: Technologie"
-                                        style={{ fontSize: '0.95rem', border: '1px solid #e9ecef' }}
-                                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                        onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Téléphone
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="telephone" 
-                                        defaultValue={currentEntreprise?.telephone} 
-                                        placeholder="Ex: +33 1 23 45 67 89"
-                                        style={{ fontSize: '0.95rem', border: '1px solid #e9ecef' }}
-                                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                        onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row>
-                            <Col md={12} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Email professionnel
-                                    </Form.Label>
-                                    <Form.Control 
-                                        className="border rounded-3 py-3 px-3" 
-                                        type="email" 
-                                        name="email" 
-                                        defaultValue={currentEntreprise?.email} 
-                                        placeholder="contact@entreprise.com"
-                                        style={{ fontSize: '0.95rem', border: '1px solid #e9ecef' }}
-                                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                        onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row>
-                            <Col md={12} className="mb-3">
-                                <Form.Group>
-                                    <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
-                                        Adresse du siège
-                                    </Form.Label>
-                                    <Form.Control 
-                                        as="textarea"
-                                        rows={2}
-                                        className="border rounded-3 py-3 px-3" 
-                                        name="adresse" 
-                                        defaultValue={currentEntreprise?.adresse} 
-                                        placeholder="123 Rue de l'Exemple, 75001 Paris, France"
-                                        style={{ 
-                                            fontSize: '0.95rem', 
-                                            border: '1px solid #e9ecef',
-                                            resize: 'none'
-                                        }}
-                                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                        onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row>
-                            <Col md={12} className="mb-3">
-                                <Form.Group>
+                        {/* Champ modifiable : Description */}
+                        <div className="mb-3">
+                            <Form.Group>
                                     <Form.Label className="small fw-bold text-uppercase text-muted mb-2">
                                         Description de l'entreprise
                                     </Form.Label>
@@ -512,8 +394,7 @@ const EntrepriseManager = () => {
                                         Utilisez les retours à la ligne pour structurer votre description
                                     </Form.Text>
                                 </Form.Group>
-                            </Col>
-                        </Row>
+                        </div>
                     </Modal.Body>
                     <Modal.Footer className="border-0 pt-0 pb-4">
                         <div className="d-flex gap-3 w-100 flex-column flex-md-row">
@@ -543,7 +424,7 @@ const EntrepriseManager = () => {
                                         Enregistrement...
                                     </>
                                 ) : (
-                                    currentEntreprise ? 'Mettre à jour' : 'Créer l\'entreprise'
+                                    'Mettre à jour la description'
                                 )}
                             </Button>
                         </div>
