@@ -71,8 +71,14 @@ const SourceManager = ({ sources, allGaz, onAdd, onUpdate, onDelete }) => {
                         {filteredSources.map((source) => (
                             <tr key={source._id}>
                                 <td className="align-middle fw-bold">
+                                    <span>
                                     <Folder size="14px" className="me-2 text-muted" />
                                     {source.designation}
+                                    </span>
+                                    <br />
+                                    <span className="text-muted small">{source.gaz?.length || 0} gaz émis <br />
+                                    ID: {source._id}
+                                    </span>
                                 </td>
                                 <td className="align-middle">
                                     <Badge bg={source.categorie === 'DDD' ? 'info' : 'warning'}>

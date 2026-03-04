@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import { Notification } from "@/lib/models/Capteur";
+import { Capteur, Notification } from "@/lib/models/Capteur";
 import Mesure from "@/lib/models/Mesure";
+import mongoose from "mongoose";
 
 export async function GET(request) {
     try {
@@ -16,7 +17,15 @@ export async function GET(request) {
             query._id = id;
         }
         if (capteurId) {
-            query.capteurId = capteurId;
+            if (mongoose.Types.ObjectId.isValid(capteurId)) {
+                query.capteurId = capteurId;
+            } else {
+                const capteur = await Capteur.findOne({ uuid: capteurId }).select("_id");
+                if (!capteur) {
+                    return NextResponse.json({ success: true, data: [] });
+                }
+                query.capteurId = capteur._id;
+            }
         }
 
         const notifications = await Notification.find(query).populate('capteurId').populate('capteurId.entrepriseId').populate('mesures').populate('mesures.sourceId').sort({ createdAt: -1 });
@@ -31,6 +40,14 @@ export async function POST(request) {
     try {
         await dbConnect();
         const body = await request.json();
+
+        if (body?.capteurId && !mongoose.Types.ObjectId.isValid(body.capteurId)) {
+            const capteur = await Capteur.findOne({ uuid: body.capteurId }).select("_id");
+            if (!capteur) {
+                return NextResponse.json({ success: false, message: "Capteur non trouvé" }, { status: 404 });
+            }
+            body.capteurId = capteur._id;
+        }
         
         const nouvelleNotification = await Notification.create(body);
         return NextResponse.json({ success: true, data: nouvelleNotification }, { status: 201 });

@@ -140,6 +140,7 @@ const GazManager = () => {
                                     <div className="lh-1">
                                         <h5 className="mb-1">{item.designation}</h5>
                                         <p className="mb-0 text-muted small">{item.description?.substring(0, 30)}...</p>
+                                        <span className="badge bg-secondary-soft text-secondary">ID: {item._id}</span>
                                     </div>
                                 </div>
                             </td>
