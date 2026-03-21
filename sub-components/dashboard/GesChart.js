@@ -10,17 +10,30 @@ const GesChart = ({ sources = [], entrepriseId }) => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (sources?.length > 0 && !selectedSource) {
+        if (!sources?.length) {
+            setSelectedSource(null);
+            return;
+        }
+
+        const currentStillExists = sources.some((source) => source._id === selectedSource?._id);
+        if (!currentStillExists) {
             setSelectedSource(sources[0]);
         }
     }, [sources, selectedSource]);
 
     const fetchAverages = useCallback(async () => {
-        if (!selectedSource?._id) return;
+        if (!selectedSource?._id || !entrepriseId) {
+            setData([]);
+            return;
+        }
         setLoading(true);
 
         try {
-            const response = await fetch(`/api/mesures?sourceId=${selectedSource._id}&entrepriseId=${entrepriseId}`);
+            const params = new URLSearchParams({
+                sourceId: selectedSource._id,
+                entrepriseId
+            });
+            const response = await fetch(`/api/mesures?${params.toString()}`);
             const json = await response.json();
 
             if (json.success && Array.isArray(json.data)) {
@@ -66,13 +79,16 @@ const GesChart = ({ sources = [], entrepriseId }) => {
                 }));
 
                 setData(formattedData);
+            } else {
+                setData([]);
             }
         } catch (error) {
             console.error("Erreur filtrage:", error);
+            setData([]);
         } finally {
             setLoading(false);
         }
-    }, [selectedSource, timeFilter]);
+    }, [selectedSource, timeFilter, entrepriseId]);
 
     useEffect(() => { fetchAverages(); }, [fetchAverages]);
 

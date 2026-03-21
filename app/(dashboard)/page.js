@@ -89,7 +89,7 @@ const Home = () => {
             ];
 
         }
-    }, [sources]);
+    }, [sources, user]);
 
     // --- Méthodes CRUD ---
     const handleAddSource = async (data) => {
