@@ -73,6 +73,7 @@ const SourceManager = ({ sources, allGaz, onAdd, onUpdate, onDelete }) => {
                                 <td className="align-middle fw-bold">
                                     <Folder size="14px" className="me-2 text-muted" />
                                     {source.designation}
+                                    (ID: {source._id}) {/* Affichage d'une partie de l'ID pour différencier les sources */}
                                 </td>
                                 <td className="align-middle">
                                     <Badge bg={source.categorie === 'DDD' ? 'info' : 'warning'}>
@@ -139,7 +140,10 @@ const SourceManager = ({ sources, allGaz, onAdd, onUpdate, onDelete }) => {
                                     return (
                                         <ListGroup.Item key={g._id} className="d-flex justify-content-between align-items-center px-0 py-2">
                                             <div>
-                                                <div className="fw-bold">{g.designation}</div>
+                                                <div className="fw-bold d-flex align-items-center justify-content-between">
+                                                    <div>{g.designation}</div>
+                                                    {"  -  "}<div>(ID: {g._id})</div>
+                                                </div>
                                                 <small className="text-muted">{g.categorie}</small>
                                             </div>
                                             <Button variant="soft-danger" size="sm" onClick={async () => {

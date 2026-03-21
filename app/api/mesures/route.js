@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Mesure from "@/lib/models/Mesure";
+import "@/lib/models/Source";
+import "@/lib/models/Entreprise";
+import "@/lib/models/Gaz";
 
 export async function GET(request) {
     try {
@@ -41,6 +44,7 @@ export async function POST(request) {
     try {
         await dbConnect();
         const body = await request.json();
+        console.log("Données reçues pour création de mesure:", body);
         
         /* Format attendu du body :
            {
