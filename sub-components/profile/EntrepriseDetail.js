@@ -195,26 +195,43 @@ const EntrepriseDetail = ({ entreprise, sources }) => {
                                         <tr>
                                             <th>Date & Heure</th>
                                             {selectedSource.gaz.map(g => <th key={g._id}>{g.designation} (PPM)</th>)}
+                                            <th>CO₂e</th>
                                             <th className="text-end">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredMesures.map((m) => (
-                                            <tr key={m._id}>
-                                                <td className="align-middle">
-                                                    {new Date(m.createdAt).toLocaleString('fr-FR')}
-                                                </td>
-                                                {selectedSource.gaz.map(g => {
-                                                    const p = m.ppm.find(p => (p.gaz?._id || p.gaz) === g._id);
-                                                    return <td key={g._id} className="align-middle">{p?.value || 'N/A'}</td>
-                                                })}
-                                                <td className="text-end">
-                                                    <Button variant="link" className="text-danger" onClick={() => handleDeleteMesure(m._id)}>
-                                                        <Trash2 size="16" />
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {filteredMesures.map((m) => {
+                                            const coefficients = [
+                                                {gaz: 'CH₄', value: 28},
+                                                {gaz: 'CO₂', value: 1},
+                                                {gaz: 'N₂O', value: 265}
+                                            ];
+
+                                            let co2e = 0;
+
+                                            return (
+                                                <tr key={m._id}>
+                                                    <td className="align-middle">
+                                                        {new Date(m.createdAt).toLocaleString('fr-FR')}
+                                                    </td>
+                                                    {selectedSource.gaz.map(g => {
+                                                        const p = m.ppm.find(p => (p.gaz?._id || p.gaz) === g._id);
+                                                        const coefficient = coefficients.find( c => c.gaz == g.designation )
+                                                        co2e += coefficient?.value * (p?.value ?? 0);
+
+                                                        return <td key={g._id} className="align-middle">{p?.value || 'N/A'}</td>
+                                                    })}
+                                                    <td className='align-middle'>
+                                                        {co2e.toFixed(2)}
+                                                    </td>
+                                                    <td className="text-end">
+                                                        <Button variant="link" className="text-danger" onClick={() => handleDeleteMesure(m._id)}>
+                                                            <Trash2 size="16" />
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
                                     </tbody>
                                 </Table>
                                 {filteredMesures.length === 0 && <p className="text-center py-4 text-muted">Aucun relevé trouvé.</p>}
