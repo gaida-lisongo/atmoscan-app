@@ -238,6 +238,13 @@ const QuickMenu = () => {
     const userMenu = [
         ...menuItems, // Dynamic role item inserted here or at the top
         {
+            title: 'Calulatrice',
+            icon: 'fe fe-settings',
+            link: '/changelog',
+            action: null,
+            className: ''
+        },
+        {
             title: 'Modifier Profile',
             icon: 'fe fe-user',
             link: '/user/profile',
@@ -391,7 +398,7 @@ const QuickMenu = () => {
                     align="end"
                     aria-labelledby="dropdownUser"
                     show
-                    >
+                >
                     <Dropdown.Item as="div" className="px-4 pb-0 pt-2" bsPrefix=' '>
                             <div className="lh-1 ">
                                 <h5 className="mb-1"> {user ? `${user.username}` : 'Utilisateur'}</h5>

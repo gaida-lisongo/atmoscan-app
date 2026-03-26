@@ -4,6 +4,7 @@
 import { Col, Row, Container } from 'react-bootstrap';
 
 // import sub components
+import CO2eCalculator from 'sub-components/changelog/CO2eCalculator';
 import Version_01_00_00 from 'sub-components/changelog/Version_01_00_00';
 import Version_01_01_00 from 'sub-components/changelog/Version_01_01_00';
 
@@ -16,15 +17,13 @@ const ChangeLog = () => {
 						<div className="mb-3 mb-md-0">
 							<h1 className="mb-0 h2 fw-bold">Changelog</h1>
 							<p className="mb-0">
-								We’re constantly improving & updating Dashui. See the latest features and improvements.
+								Suivez les evolutions de la plateforme et utilisez la calculatrice CO2e integree.
 							</p>
 						</div>
 					</div>
 				</Col>
-			</Row>		
-			<Version_01_01_00/>
-			<hr/>
-			<Version_01_00_00 />
+			</Row>
+			<CO2eCalculator />
 		</Container>
 	);
 };
