@@ -240,7 +240,7 @@ const QuickMenu = () => {
         {
             title: 'Configuration',
             icon: 'fe fe-settings',
-            link: '/user/settings',
+            link: '/co2e',
             action: null,
             className: ''
         },
