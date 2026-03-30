@@ -7,14 +7,14 @@ import { Activity, RotateCcw, Save, Trash2 } from 'react-feather';
 const STORAGE_KEY = 'atmoscan:co2e-calculator';
 
 const GAS_FIELDS = [
-  { key: 'ch4', label: 'Methane (CH4)', factor: 28, placeholder: '0' },
   { key: 'co2', label: 'Dioxyde de carbone (CO2)', factor: 1, placeholder: '0' },
-  { key: 'n2o', label: "Monoxyde d'azote (N2O)", factor: 265, placeholder: '0' }
+  { key: 'ch4', label: 'Methane (CH4)', factor: 28, placeholder: '0' },
+  { key: 'n2o', label: "Protoxyde d'azote (N2O)", factor: 265, placeholder: '0' }
 ];
 
 const INITIAL_VALUES = {
-  ch4: '',
   co2: '',
+  ch4: '',
   n2o: ''
 };
 
@@ -112,7 +112,7 @@ const CO2eCalculator = () => {
                     <Activity size={20} />
                   </div>
                   <div>
-                    <h3 className="mb-1">Calculatrice CO2e</h3>
+                    <h3 className="mb-1">Calculatrice CO<sub>2</sub>e</h3>
                     <p className="mb-0 text-muted">
                       Reprise du calcul utilise dans la fiche entreprise.
                     </p>
@@ -121,9 +121,17 @@ const CO2eCalculator = () => {
 
                 <div className="bg-light rounded-3 p-3">
                   <div className="text-uppercase fs-6 fw-semibold text-muted mb-2">Resultat estime</div>
-                  <div className="display-6 fw-bold text-primary mb-2">{result.toFixed(2)}</div>
+                  <div className="display-6 fw-bold text-primary mb-2">{(result* 0.001).toFixed(2)} tCO<sub>2e</sub></div>
                   <Badge bg="light" text="dark" className="border">
-                    CO2e = CH4 x 28 + CO2 x 1 + N2O x 265
+                    CO<sub>2</sub>e = (CO<sub>2</sub> x 1) + (CH<sub>4</sub> x 28) + (N<sub>2</sub>O x 265)
+                  </Badge>
+                </div>
+                <br />
+                <div className="bg-light rounded-3 p-3">
+                  <div className="text-uppercase fs-6 fw-semibold text-muted mb-2">Cout carbone</div>
+                  <div className="display-6 fw-bold text-primary mb-2">{(result * 0.001 * 15).toFixed(2)} $</div>
+                  <Badge bg="light" text="dark" className="border">
+                    CO<sub>2</sub>e [t] * 15 [$] (prix moyen du marché du carbone en 2024)
                   </Badge>
                 </div>
               </Col>
@@ -187,7 +195,7 @@ const CO2eCalculator = () => {
                   <thead className="table-light">
                     <tr>
                       <th>Date</th>
-                      <th>CO2e</th>
+                      <th>CO<sub>2</sub>e</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -196,7 +204,7 @@ const CO2eCalculator = () => {
                         <td>
                           <div className="fw-semibold">{new Date(item.createdAt).toLocaleDateString('fr-FR')}</div>
                           <small className="text-muted">
-                            CH4 {item.values.ch4} | CO2 {item.values.co2} | N2O {item.values.n2o}
+                            CH<sub>4</sub> {item.values.ch4} | CO<sub>2</sub> {item.values.co2} | N<sub>2</sub>O {item.values.n2o}
                           </small>
                         </td>
                         <td className="fw-bold text-primary">{item.result.toFixed(2)}</td>
