@@ -8,7 +8,8 @@ import useAuthStore from '@/stores/authStore';
 // import sub components
 import {
   EntrepriseDetail,
-  GesChart
+  GesChart,
+  EntrepriseCarbonDashboard
 } from 'sub-components'
 import CustomLoader from 'components/CustomLoader';
 
@@ -47,6 +48,11 @@ const Entreprise = () => {
 
       {/* content */}
       <div className="py-6">
+        <Row className="mb-4">
+          <Col xl={12} lg={12} md={12} xs={12}>
+            <EntrepriseCarbonDashboard entreprise={entreprise} sources={sources} />
+          </Col>
+        </Row>
 
         <Row className="my-6">
           {

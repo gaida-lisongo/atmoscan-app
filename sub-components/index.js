@@ -23,6 +23,7 @@ import MyTeam from 'sub-components/profile/MyTeam';
 import ProfileHeader from 'sub-components/profile/ProfileHeader';
 import UserBanner from 'sub-components/profile/UserBanner';
 import EntrepriseDetail from 'sub-components/profile/EntrepriseDetail';
+import EntrepriseCarbonDashboard from 'sub-components/profile/EntrepriseCarbonDashboard';
 import ProjectsContributions from 'sub-components/profile/ProjectsContributions';
 import PollutionsDetail from 'sub-components/profile/PollutionsDetail';
 import RecentFromBlog from 'sub-components/profile/RecentFromBlog';
@@ -58,6 +59,7 @@ export {
    ProfileHeader,
    UserBanner,
    EntrepriseDetail,
+   EntrepriseCarbonDashboard,
    ProjectsContributions,
    PollutionsDetail,
    RecentFromBlog,

@@ -238,6 +238,13 @@ const QuickMenu = () => {
     const userMenu = [
         ...menuItems, // Dynamic role item inserted here or at the top
         {
+            title: 'Configuration',
+            icon: 'fe fe-settings',
+            link: '/user/settings',
+            action: null,
+            className: ''
+        },
+        {
             title: 'Modifier Profile',
             icon: 'fe fe-user',
             link: '/user/profile',
