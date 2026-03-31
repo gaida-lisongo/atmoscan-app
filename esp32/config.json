@@ -1,0 +1,47 @@
+{
+    "host": "http://10.105.181.240:3000",
+    "ssid": "TECNO SPARK 20",
+    "password": "ttxg243xbrbhwgw",
+    "capteurUuid": "",
+    "sourceId":"694354254a1fa588a98425e9",
+    "entrepriseId": "69432c9e503613e936849e63",
+    "timing": {
+        "measure_duration_seconds": 50,
+        "send_duration_seconds": 5,
+        "pause_duration_seconds": 5,
+        "sample_interval_ms": 1000
+    },
+    "leds": {
+        "red_pin": 4,
+        "blue_pin": 2,
+        "active_high": true
+    },
+    "mq131": {
+        "gaz": "Ozone",
+        "gazId": "69438d16cd70aab2d7fbbc46",
+        "pin": 34,
+        "ppm_factor": 1.0,
+        "ppm_offset": 0.0
+    },
+    "mq135": {
+        "gaz": "Air Quality",
+        "gazId": "6943a08edc4e5b811cc71f3c",
+        "pin": 35,
+        "ppm_factor": 1.0,
+        "ppm_offset": 0.0
+    },
+    "mq7": {
+        "gaz": "Monoxide de carbone",
+        "gazId": "6943266a503613e936849e50",
+        "pin": 32,
+        "ppm_factor": 1.0,
+        "ppm_offset": 0.0
+    },
+    "mq4": {
+        "gaz": "Methane",
+        "gazId": "694326e3503613e936849e53",
+        "pin": 33,
+        "ppm_factor": 1.0,
+        "ppm_offset": 0.0
+    }
+}

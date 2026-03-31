@@ -56,6 +56,19 @@ export async function POST(request) {
              ]
            }
         */
+
+        const ppm = body.ppm || [];
+        
+        if (!body.sourceId || !body.entrepriseId) {
+            return NextResponse.json({ success: false, message: "sourceId et entrepriseId sont requis" }, { status: 400 });
+        }
+
+        const fixedValuesPpm = ppm.map(item => ({
+            gaz: item.gaz,
+            value: item.value !== undefined ? item.value /1000 : null
+        }));
+
+        body.ppm = fixedValuesPpm;      
         
         const nouvelleMesure = await Mesure.create(body);
         
