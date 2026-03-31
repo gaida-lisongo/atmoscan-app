@@ -65,7 +65,7 @@ export async function POST(request) {
 
         const fixedValuesPpm = ppm.map(item => ({
             gaz: item.gaz,
-            value: item.value !== undefined ? item.value /1000 : null
+            value: item.value !== undefined ? item.value /1000000 : null
         }));
 
         body.ppm = fixedValuesPpm;      
