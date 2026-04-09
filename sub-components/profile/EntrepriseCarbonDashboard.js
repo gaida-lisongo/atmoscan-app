@@ -177,6 +177,7 @@ const EntrepriseCarbonDashboard = ({ entreprise, sources = [] }) => {
                 };
                 const emissionKg = avgPpm * coeffs.facteurEmission;
                 const emissionT = emissionKg * 0.001;
+                
                 const tco2e = emissionT * coeffs.productRechauffement;
                 const coutCarbone = tco2e * CARBON_PRICE_PER_TON;
 
