@@ -19,7 +19,7 @@ import { StatRightTopIcon } from 'widgets';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const CARBON_PRICE_PER_TON = 15;
+const CARBON_PRICE_PER_TON = 5;
 
 const getMonthInputValue = (date = new Date()) => {
     const year = date.getFullYear();
