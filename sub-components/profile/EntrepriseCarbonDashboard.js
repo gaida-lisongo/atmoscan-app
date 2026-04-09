@@ -177,7 +177,7 @@ const EntrepriseCarbonDashboard = ({ entreprise, sources = [] }) => {
                 };
                 const emissionKg = avgPpm * coeffs.facteurEmission;
                 const emissionT = emissionKg * 0.001;
-                
+
                 const tco2e = emissionT * coeffs.productRechauffement;
                 const coutCarbone = tco2e * CARBON_PRICE_PER_TON;
 
@@ -392,10 +392,10 @@ const EntrepriseCarbonDashboard = ({ entreprise, sources = [] }) => {
                                 Dashboard Carbone DEHPE
                             </Badge>
                             <h3 className="mb-1 fw-bold" style={{ color: 'rgba(255, 255, 255, 0.92)' }}>Analyse mensuelle des émissions et coûts carbone</h3>
-                            <p className="mb-0" style={{ color: 'rgba(255, 255, 255, 0.92)' }}>
+                            {/* <p className="mb-0" style={{ color: 'rgba(255, 255, 255, 0.92)' }}>
                                 Calcul à partir de la moyenne du mois : ppm, émission en kg, émission en tonne,
                                 tCO2e et coût carbone.
-                            </p>
+                            </p> */}
                         </div>
                         <div className="d-flex flex-column flex-sm-row gap-2">
                             <Form.Control
