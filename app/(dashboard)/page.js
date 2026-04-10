@@ -22,7 +22,10 @@ const Home = () => {
 
     const refreshData = async () => {
         try {
-            const [resS, resG] = await Promise.all([fetch('/api/sources'), fetch('/api/gaz')]);
+            const [resS, resG] = await Promise.all([
+                fetch('/api/sources', { cache: 'no-store' }),
+                fetch('/api/gaz', { cache: 'no-store' })
+            ]);
             const sJson = await resS.json();
             const gJson = await resG.json();
             if (sJson.success) setSources(sJson.data);
@@ -89,7 +92,7 @@ const Home = () => {
             ];
 
         }
-    }, [sources]);
+    }, [sources, user]);
 
     // --- Méthodes CRUD ---
     const handleAddSource = async (data) => {

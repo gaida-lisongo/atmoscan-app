@@ -24,7 +24,10 @@ const Entreprise = () => {
 
   const refreshData = async (id) => {
     try {
-        const [resS, resE] = await Promise.all([fetch('/api/sources'), fetch(`/api/entreprises?id=${id}`)]);
+        const [resS, resE] = await Promise.all([
+            fetch('/api/sources', { cache: 'no-store' }),
+            fetch(`/api/entreprises?id=${id}`, { cache: 'no-store' })
+        ]);
         const sJson = await resS.json();
         const gJson = await resE.json();
         if (sJson.success) setSources(sJson.data);
