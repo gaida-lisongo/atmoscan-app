@@ -102,7 +102,7 @@ const CO2eCalculator = () => {
 
   return (
     <Row className="mb-4">
-      <Col lg={8} md={12} sm={12}>
+      <Col lg={12} md={12} sm={12}>
         <Card className="border-0 shadow-sm">
           <Card.Body className="p-4">
             <Row className="g-4">
@@ -129,9 +129,9 @@ const CO2eCalculator = () => {
                 <br />
                 <div className="bg-light rounded-3 p-3">
                   <div className="text-uppercase fs-6 fw-semibold text-muted mb-2">Cout carbone</div>
-                  <div className="display-6 fw-bold text-primary mb-2">{(result * 0.001 * 15).toFixed(2)} $</div>
+                  <div className="display-6 fw-bold text-primary mb-2">{(result * 0.001 * 5).toFixed(2)} $</div>
                   <Badge bg="light" text="dark" className="border">
-                    CO<sub>2</sub>e [t] * 15 [$] (prix moyen du marché du carbone en 2024)
+                    CO<sub>2</sub>e [t] * 5 [$] (prix moyen du marché du carbone en 2024)
                   </Badge>
                 </div>
               </Col>
@@ -179,7 +179,7 @@ const CO2eCalculator = () => {
         </Card>
       </Col>
 
-      <Col lg={4} md={12} sm={12} className="mt-4 mt-lg-0">
+      <Col lg={12} md={12} sm={12} className="mt-10 mt-lg-8">
         <Card className="border-0 shadow-sm h-100">
           <Card.Body className="p-4">
             <div className="d-flex justify-content-between align-items-start mb-3">

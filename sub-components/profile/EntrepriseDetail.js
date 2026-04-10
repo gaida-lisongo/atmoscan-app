@@ -273,7 +273,7 @@ const EntrepriseDetail = ({ entreprise, sources }) => {
                                         <h3 className="mb-0">{summary.monthCarbonCost.toFixed(2)} $</h3>
                                     </div>
                                 </div>
-                                <p className="text-muted mb-0">Calcul du mois courant avec la formule tCO₂e × 15.</p>
+                                <p className="text-muted mb-0">Calcul du mois courant avec la formule tCO₂e × 5.</p>
                             </Card.Body>
                         </Card>
                     </Col>
