@@ -353,7 +353,7 @@ const EntrepriseCarbonDashboard = ({ entreprise, sources = [] }) => {
             title: 'Coût carbone mensuel',
             value: `${formatNumber(analytics.totalCost, 2)} $`,
             icon: <DollarSign size={18} className="text-warning" />,
-            statInfo: '<span class="text-muted">Base 15 par tonne CO2e</span>'
+            statInfo: '<span class="text-muted">Base 5$ par tonne CO2e</span>'
         }
     ];
 
@@ -463,7 +463,7 @@ const EntrepriseCarbonDashboard = ({ entreprise, sources = [] }) => {
                                 </div>
                                 <div className="small text-muted">
                                     `kg = ppm x facteurEmission`, `t = kg x 0.001`, `tCO2e = t x
-                                    productRechauffement`, `coût = tCO2e x 15`
+                                    productRechauffement`, `coût = tCO2e x 5`
                                 </div>
                             </div>
                             <div className="border rounded-3 p-3 bg-light">
